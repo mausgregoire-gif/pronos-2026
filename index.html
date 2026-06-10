@@ -1,0 +1,1849 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>⚽ Pronostics Coupe du Monde 2026</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800;900&family=DM+Mono:wght@500;700&display=swap" rel="stylesheet" />
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, set, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    // ══════════════════════════════════════════════
+    // 🔧 CONFIGURATION FIREBASE — remplace ces valeurs
+    // ══════════════════════════════════════════════
+    const firebaseConfig = {
+      apiKey: "AIzaSyDhPeows-xgqXrENo2QPvtEuC-mDHmZu8I",
+      authDomain: "pronostics-cdm-2026-73b99.firebaseapp.com",
+      databaseURL: "https://pronostics-cdm-2026-73b99-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "pronostics-cdm-2026-73b99",
+      storageBucket: "pronostics-cdm-2026-73b99.firebasestorage.app",
+      messagingSenderId: "1034292280943",
+      appId: "1:1034292280943:web:d66ff030e855d2bc1ad79a"
+    };
+    // ══════════════════════════════════════════════
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    window.__db = db;
+    window.__dbRef = ref;
+    window.__dbSet = set;
+    window.__dbGet = get;
+    window.__dbOnValue = onValue;
+    window.__dbUpdate = update;
+    window.__firebaseReady = true;
+    document.dispatchEvent(new Event("firebase-ready"));
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #111827;
+      --bg2: #1e2d45;
+      --bg3: #263354;
+      --border: rgba(255,255,255,0.22);
+      --border2: rgba(255,255,255,0.38);
+      --gold: #f4c542;
+      --gold2: #e8b820;
+      --green: #00e5a0;
+      --red: #ff5e5e;
+      --yellow: #ffd166;
+      --text: #ffffff;
+      --text2: #c8d0e0;
+      --text3: #8898b8;
+      --radius: 14px;
+      --radius-sm: 8px;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      background-image:
+        radial-gradient(ellipse at 15% 0%, rgba(244,197,66,0.07) 0%, transparent 45%),
+        radial-gradient(ellipse at 85% 100%, rgba(0,80,200,0.07) 0%, transparent 45%);
+    }
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+    input[type=number] { -moz-appearance: textfield; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #2a3040; border-radius: 4px; }
+
+    /* ── LAYOUT ── */
+    #app { max-width: 680px; margin: 0 auto; padding: 0 16px 80px; }
+
+    /* ── HEADER ── */
+    .header {
+      padding: 28px 0 20px;
+      display: flex; align-items: flex-start; justify-content: space-between;
+    }
+    .header-left {}
+    .header-label {
+      font-size: 10px; letter-spacing: 3px; color: var(--gold);
+      text-transform: uppercase; margin-bottom: 6px;
+    }
+    .header-title { font-size: 28px; font-weight: 900; letter-spacing: -0.5px; line-height: 1; }
+    .header-sub { font-size: 12px; color: var(--text2); margin-top: 5px; }
+    .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; padding-top: 4px; }
+
+    /* ── TABS ── */
+    .tabs {
+      display: flex; gap: 4px; margin: 0 0 20px;
+      background: var(--bg2); border-radius: var(--radius);
+      padding: 4px; border: 1px solid var(--border);
+    }
+    .tab {
+      flex: 1; padding: 10px 8px; border: none; border-radius: 10px;
+      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700;
+      cursor: pointer; transition: all 0.18s; letter-spacing: 0.3px;
+    }
+    .tab.active { background: var(--gold); color: #080b10; }
+    .tab:not(.active) { background: transparent; color: var(--text2); }
+    .tab:not(.active):hover { color: var(--text); }
+
+    /* ── PLAYER PILL ── */
+    .player-section { margin-bottom: 18px; }
+    .section-label { font-size: 10px; letter-spacing: 2px; color: var(--text3); text-transform: uppercase; margin-bottom: 10px; }
+    .players-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .player-pill {
+      padding: 8px 18px; border-radius: 30px; border: 1.5px solid;
+      font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .player-pill.active { border-color: var(--gold); background: rgba(244,197,66,0.12); color: var(--gold); }
+    .player-pill:not(.active) { border-color: var(--border2); background: transparent; color: var(--text2); }
+    .player-pill:not(.active):hover { color: var(--text); border-color: rgba(255,255,255,0.25); }
+
+    /* ── GROUP FILTER ── */
+    .group-filter { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
+    .group-btn {
+      padding: 6px 14px; border-radius: 20px; border: 1px solid;
+      font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .group-btn.active { border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.1); color: #fff; }
+    .group-btn:not(.active) { border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.05); color: #c8d0e0; }
+
+    /* ── INFO BAR ── */
+    .info-bar {
+      display: flex; gap: 20px; padding: 10px 14px; margin-bottom: 18px;
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);
+      border-radius: var(--radius-sm); font-size: 12px; color: var(--text2);
+    }
+
+    /* ── MATCH CARD ── */
+    .match-card {
+      background: #1e2d45; border: 1px solid rgba(255,255,255,0.18);
+      border-radius: var(--radius); padding: 14px 16px;
+      margin-bottom: 8px; transition: border-color 0.2s;
+    }
+    .match-card.started { border-color: rgba(244,197,66,0.2); }
+    .match-meta {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 10px;
+    }
+    .match-date { font-size: 10px; color: var(--text3); letter-spacing: 1.5px; text-transform: uppercase; }
+    .match-venue { font-size: 10px; color: var(--text3); }
+    .pts-badge {
+      font-size: 11px; font-weight: 700; border-radius: 20px; padding: 3px 10px;
+    }
+    .pts-3 { color: var(--green); background: rgba(0,229,160,0.12); }
+    .pts-1 { color: var(--yellow); background: rgba(255,209,102,0.12); }
+    .pts-0 { color: var(--red); background: rgba(255,94,94,0.12); }
+    .match-teams {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .team-name { flex: 1; font-size: 13px; font-weight: 700; color: var(--text); }
+    .team-name.away { text-align: right; }
+    .team-flag { font-size: 20px; }
+    .score-inputs { display: flex; align-items: center; gap: 6px; }
+    .score-input {
+      width: 44px; height: 44px; text-align: center;
+      font-size: 18px; font-weight: 700; font-family: 'DM Mono', monospace;
+      background: rgba(255,255,255,0.12); border: 2px solid rgba(255,255,255,0.3);
+      border-radius: var(--radius-sm); color: #fff; outline: none;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .score-input:focus { border-color: var(--gold); background: rgba(244,197,66,0.08); }
+    .score-input:disabled { opacity: 0.35; cursor: not-allowed; }
+    .score-sep { color: var(--text3); font-size: 16px; }
+    .locked-badge {
+      font-size: 10px; color: var(--gold); background: rgba(244,197,66,0.1);
+      border: 1px solid rgba(244,197,66,0.2); border-radius: 12px;
+      padding: 2px 8px; letter-spacing: 1px;
+    }
+
+    /* Actual score row */
+    .actual-row {
+      display: flex; align-items: center; gap: 8px;
+      padding-top: 10px; margin-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+    .actual-label { font-size: 10px; color: var(--gold); letter-spacing: 1.5px; text-transform: uppercase; flex: 1; }
+
+    /* Others' predictions row */
+    .others-row {
+      padding-top: 8px; margin-top: 8px; border-top: 1px solid var(--border);
+      display: flex; flex-wrap: wrap; gap: 6px;
+    }
+    .other-pred {
+      font-size: 11px; color: var(--text2);
+      background: var(--bg3); border-radius: 6px; padding: 3px 8px;
+    }
+    .other-pred .name { color: var(--text3); margin-right: 4px; }
+
+    /* ── LEADERBOARD ── */
+    .lb-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 16px; border-radius: var(--radius);
+      border: 1px solid var(--border); margin-bottom: 8px;
+      background: var(--bg2); transition: border-color 0.2s;
+    }
+    .lb-item.first { border-color: rgba(244,197,66,0.35); background: rgba(244,197,66,0.05); }
+    .lb-rank { font-size: 18px; width: 32px; text-align: center; }
+    .lb-name { flex: 1; font-size: 15px; font-weight: 700; }
+    .lb-stats { display: flex; gap: 14px; font-size: 12px; color: var(--text2); }
+    .lb-total { font-size: 22px; font-weight: 800; font-family: 'DM Mono', monospace; min-width: 44px; text-align: right; }
+    .lb-total.first { color: var(--gold); }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(6px); display: flex;
+      align-items: center; justify-content: center; z-index: 200; padding: 20px;
+    }
+    .modal {
+      background: #141828; border: 1px solid var(--border2);
+      border-radius: 20px; padding: 32px; width: 100%; max-width: 360px;
+    }
+    .modal h2 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+    .modal p { font-size: 13px; color: var(--text2); margin-bottom: 20px; line-height: 1.5; }
+
+    /* ── INPUTS ── */
+    .input-field {
+      width: 100%; padding: 12px 16px; border-radius: 10px;
+      border: 1.5px solid var(--border2); background: rgba(255,255,255,0.05);
+      color: #fff; font-size: 14px; font-family: 'DM Sans', sans-serif;
+      outline: none; transition: border-color 0.15s; margin-bottom: 12px;
+    }
+    .input-field:focus { border-color: var(--gold); }
+
+    /* ── BUTTONS ── */
+    .btn {
+      width: 100%; padding: 13px; border-radius: 10px; border: none;
+      font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.88; }
+    .btn-gold { background: var(--gold); color: #080b10; }
+    .btn-ghost { background: rgba(255,255,255,0.06); color: var(--text2); border: 1px solid var(--border2); }
+    .btn-danger { background: rgba(255,94,94,0.1); color: var(--red); border: 1px solid rgba(255,94,94,0.25); }
+    .btn + .btn { margin-top: 8px; }
+
+    /* ── ADMIN BTN ── */
+    .admin-btn {
+      padding: 7px 14px; border-radius: var(--radius-sm); border: 1px solid;
+      font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 700;
+      cursor: pointer; letter-spacing: 1px; transition: all 0.15s;
+    }
+    .admin-btn.active { border-color: rgba(244,197,66,0.4); background: rgba(244,197,66,0.1); color: var(--gold); }
+    .admin-btn:not(.active) { border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.05); color: #c8d0e0; }
+
+    /* ── SAVE INDICATOR ── */
+    .save-indicator { font-size: 11px; color: var(--green); letter-spacing: 1px; opacity: 0; transition: opacity 0.3s; }
+    .save-indicator.visible { opacity: 1; }
+
+    /* ── EMPTY STATE ── */
+    .empty { text-align: center; padding: 40px 20px; color: var(--text3); font-size: 14px; }
+
+    /* ── LEGEND ── */
+    .legend {
+      padding: 14px 16px; background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      margin-bottom: 18px; display: flex; gap: 20px; font-size: 12px; color: var(--text2);
+    }
+
+    /* ── LOADING ── */
+    .loading { text-align: center; padding: 60px 20px; }
+    .loading-dot {
+      display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+      background: var(--gold); margin: 0 3px;
+      animation: bounce 1.2s infinite ease-in-out;
+    }
+    .loading-dot:nth-child(2) { animation-delay: 0.2s; }
+    .loading-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce { 0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; } 40% { transform: scale(1); opacity: 1; } }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 420px) {
+      .header-title { font-size: 22px; }
+      .score-input { width: 40px; height: 40px; font-size: 16px; }
+      .team-name { font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div class="loading" id="loading">
+    <div style="margin-bottom:16px;font-size:28px;">⚽</div>
+    <div><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></div>
+    <div style="margin-top:14px;font-size:13px;color:var(--text2)">Connexion…</div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// GLOBALS
+// ══════════════════════════════════════════════════════════
+let activeInputId = null;
+let renderPending = false;
+let lastInteraction = 0;
+
+// ══════════════════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════════════════
+const TEAMS = {
+  MEX:{name:"Mexique",en:"Mexico",flag:"🇲🇽"},RSA:{name:"Afrique du Sud",en:"South Africa",flag:"🇿🇦"},
+  KOR:{name:"Corée du Sud",en:"South Korea",flag:"🇰🇷"},CZE:{name:"Tchéquie",en:"Czech Republic",flag:"🇨🇿"},
+  CAN:{name:"Canada",en:"Canada",flag:"🇨🇦"},BIH:{name:"Bosnie-Herzégovine",en:"Bosnia-Herzegovina",flag:"🇧🇦"},
+  QAT:{name:"Qatar",en:"Qatar",flag:"🇶🇦"},SUI:{name:"Suisse",en:"Switzerland",flag:"🇨🇭"},
+  BRA:{name:"Brésil",en:"Brazil",flag:"🇧🇷"},MAR:{name:"Maroc",en:"Morocco",flag:"🇲🇦"},
+  HAI:{name:"Haïti",en:"Haiti",flag:"🇭🇹"},SCO:{name:"Écosse",en:"Scotland",flag:"🏴󠁧󠁢󠁳󠁣󠁴󠁿"},
+  USA:{name:"États-Unis",en:"USA",flag:"🇺🇸"},PAR:{name:"Paraguay",en:"Paraguay",flag:"🇵🇾"},
+  AUS:{name:"Australie",en:"Australia",flag:"🇦🇺"},TUR:{name:"Turquie",en:"Turkey",flag:"🇹🇷"},
+  GER:{name:"Allemagne",en:"Germany",flag:"🇩🇪"},CUW:{name:"Curaçao",en:"Curaçao",flag:"🇨🇼"},
+  CIV:{name:"Côte d'Ivoire",en:"Ivory Coast",flag:"🇨🇮"},ECU:{name:"Équateur",en:"Ecuador",flag:"🇪🇨"},
+  NED:{name:"Pays-Bas",en:"Netherlands",flag:"🇳🇱"},JPN:{name:"Japon",en:"Japan",flag:"🇯🇵"},
+  SWE:{name:"Suède",en:"Sweden",flag:"🇸🇪"},TUN:{name:"Tunisie",en:"Tunisia",flag:"🇹🇳"},
+  BEL:{name:"Belgique",en:"Belgium",flag:"🇧🇪"},EGY:{name:"Égypte",en:"Egypt",flag:"🇪🇬"},
+  IRN:{name:"Iran",en:"Iran",flag:"🇮🇷"},NZL:{name:"Nouvelle-Zélande",en:"New Zealand",flag:"🇳🇿"},
+  ESP:{name:"Espagne",en:"Spain",flag:"🇪🇸"},CPV:{name:"Cap-Vert",en:"Cape Verde",flag:"🇨🇻"},
+  KSA:{name:"Arabie Saoudite",en:"Saudi Arabia",flag:"🇸🇦"},URU:{name:"Uruguay",en:"Uruguay",flag:"🇺🇾"},
+  FRA:{name:"France",en:"France",flag:"🇫🇷"},SEN:{name:"Sénégal",en:"Senegal",flag:"🇸🇳"},
+  IRQ:{name:"Irak",en:"Iraq",flag:"🇮🇶"},NOR:{name:"Norvège",en:"Norway",flag:"🇳🇴"},
+  ARG:{name:"Argentine",en:"Argentina",flag:"🇦🇷"},AUT:{name:"Autriche",en:"Austria",flag:"🇦🇹"},
+  ALG:{name:"Algérie",en:"Algeria",flag:"🇩🇿"},JOR:{name:"Jordanie",en:"Jordan",flag:"🇯🇴"},
+  POR:{name:"Portugal",en:"Portugal",flag:"🇵🇹"},COD:{name:"RD Congo",en:"DR Congo",flag:"🇨🇩"},
+  COL:{name:"Colombie",en:"Colombia",flag:"🇨🇴"},UZB:{name:"Ouzbékistan",en:"Uzbekistan",flag:"🇺🇿"},
+  ENG:{name:"Angleterre",en:"England",flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿"},CRO:{name:"Croatie",en:"Croatia",flag:"🇭🇷"},
+  GHA:{name:"Ghana",en:"Ghana",flag:"🇬🇭"},PAN:{name:"Panama",en:"Panama",flag:"🇵🇦"},
+};
+
+const MATCHES = [
+  {id:"A1",group:"A",home:"MEX",away:"RSA",date:"2026-06-11",time:"19:00",venue:"Estadio Azteca, Mexico City"},
+  {id:"A2",group:"A",home:"KOR",away:"CZE",date:"2026-06-11",time:"02:00",venue:"Estadio Akron, Guadalajara"},
+  {id:"A3",group:"A",home:"CZE",away:"RSA",date:"2026-06-18",time:"16:00",venue:"Mercedes-Benz Stadium, Atlanta"},
+  {id:"A4",group:"A",home:"MEX",away:"KOR",date:"2026-06-18",time:"01:00",venue:"Estadio Akron, Guadalajara"},
+  {id:"A5",group:"A",home:"CZE",away:"MEX",date:"2026-06-24",time:"01:00",venue:"Estadio Azteca, Mexico City"},
+  {id:"A6",group:"A",home:"RSA",away:"KOR",date:"2026-06-24",time:"01:00",venue:"Estadio BBVA, Monterrey"},
+  {id:"B1",group:"B",home:"CAN",away:"BIH",date:"2026-06-12",time:"19:00",venue:"BMO Field, Toronto"},
+  {id:"B2",group:"B",home:"QAT",away:"SUI",date:"2026-06-13",time:"19:00",venue:"Levi's Stadium, Santa Clara"},
+  {id:"B3",group:"B",home:"SUI",away:"BIH",date:"2026-06-18",time:"19:00",venue:"SoFi Stadium, Los Angeles"},
+  {id:"B4",group:"B",home:"CAN",away:"QAT",date:"2026-06-18",time:"01:00",venue:"BC Place, Vancouver"},
+  {id:"B5",group:"B",home:"SUI",away:"CAN",date:"2026-06-24",time:"19:00",venue:"BC Place, Vancouver"},
+  {id:"B6",group:"B",home:"BIH",away:"QAT",date:"2026-06-24",time:"19:00",venue:"BMO Field, Toronto"},
+  {id:"C1",group:"C",home:"BRA",away:"MAR",date:"2026-06-13",time:"22:00",venue:"MetLife Stadium, New Jersey"},
+  {id:"C2",group:"C",home:"SCO",away:"HAI",date:"2026-06-13",time:"01:00",venue:"Gillette Stadium, Boston"},
+  {id:"C3",group:"C",home:"BRA",away:"SCO",date:"2026-06-19",time:"22:00",venue:"Gillette Stadium, Boston"},
+  {id:"C4",group:"C",home:"MAR",away:"HAI",date:"2026-06-19",time:"00:30",venue:"Lincoln Financial Field, Philadelphia"},
+  {id:"C5",group:"C",home:"BRA",away:"HAI",date:"2026-06-24",time:"22:00",venue:"Hard Rock Stadium, Miami"},
+  {id:"C6",group:"C",home:"MAR",away:"SCO",date:"2026-06-24",time:"22:00",venue:"Mercedes-Benz Stadium, Atlanta"},
+  {id:"D1",group:"D",home:"USA",away:"PAR",date:"2026-06-12",time:"01:00",venue:"SoFi Stadium, Los Angeles"},
+  {id:"D2",group:"D",home:"AUS",away:"TUR",date:"2026-06-13",time:"04:00",venue:"BC Place, Vancouver"},
+  {id:"D3",group:"D",home:"TUR",away:"PAR",date:"2026-06-19",time:"03:00",venue:"Levi's Stadium, Santa Clara"},
+  {id:"D4",group:"D",home:"USA",away:"AUS",date:"2026-06-19",time:"19:00",venue:"Lumen Field, Seattle"},
+  {id:"D5",group:"D",home:"TUR",away:"USA",date:"2026-06-25",time:"02:00",venue:"SoFi Stadium, Los Angeles"},
+  {id:"D6",group:"D",home:"PAR",away:"AUS",date:"2026-06-25",time:"02:00",venue:"Levi's Stadium, Santa Clara"},
+  {id:"E1",group:"E",home:"GER",away:"CUW",date:"2026-06-14",time:"17:00",venue:"NRG Stadium, Houston"},
+  {id:"E2",group:"E",home:"CIV",away:"ECU",date:"2026-06-14",time:"23:00",venue:"Lincoln Financial Field, Philadelphia"},
+  {id:"E3",group:"E",home:"GER",away:"CIV",date:"2026-06-20",time:"20:00",venue:"BMO Field, Toronto"},
+  {id:"E4",group:"E",home:"ECU",away:"CUW",date:"2026-06-20",time:"00:00",venue:"Arrowhead Stadium, Kansas City"},
+  {id:"E5",group:"E",home:"ECU",away:"GER",date:"2026-06-25",time:"20:00",venue:"MetLife Stadium, New Jersey"},
+  {id:"E6",group:"E",home:"CUW",away:"CIV",date:"2026-06-25",time:"20:00",venue:"Lincoln Financial Field, Philadelphia"},
+  {id:"F1",group:"F",home:"NED",away:"JPN",date:"2026-06-14",time:"20:00",venue:"AT&T Stadium, Arlington"},
+  {id:"F2",group:"F",home:"SWE",away:"TUN",date:"2026-06-14",time:"02:00",venue:"Estadio BBVA, Monterrey"},
+  {id:"F3",group:"F",home:"NED",away:"SWE",date:"2026-06-20",time:"17:00",venue:"NRG Stadium, Houston"},
+  {id:"F4",group:"F",home:"TUN",away:"JPN",date:"2026-06-20",time:"04:00",venue:"Estadio BBVA, Monterrey"},
+  {id:"F5",group:"F",home:"JPN",away:"SWE",date:"2026-06-25",time:"23:00",venue:"AT&T Stadium, Arlington"},
+  {id:"F6",group:"F",home:"TUN",away:"NED",date:"2026-06-25",time:"23:00",venue:"Arrowhead Stadium, Kansas City"},
+  {id:"G1",group:"G",home:"BEL",away:"IRN",date:"2026-06-15",time:"19:00",venue:"Lumen Field, Seattle"},
+  {id:"G2",group:"G",home:"EGY",away:"NZL",date:"2026-06-15",time:"01:00",venue:"Estadio Akron, Guadalajara"},
+  {id:"G3",group:"G",home:"BEL",away:"EGY",date:"2026-06-21",time:"19:00",venue:"SoFi Stadium, Los Angeles"},
+  {id:"G4",group:"G",home:"NZL",away:"IRN",date:"2026-06-21",time:"01:00",venue:"BC Place, Vancouver"},
+  {id:"G5",group:"G",home:"BEL",away:"NZL",date:"2026-06-26",time:"03:00",venue:"BC Place, Vancouver"},
+  {id:"G6",group:"G",home:"IRN",away:"EGY",date:"2026-06-26",time:"03:00",venue:"Lumen Field, Seattle"},
+  {id:"H1",group:"H",home:"ESP",away:"CPV",date:"2026-06-15",time:"16:00",venue:"Mercedes-Benz Stadium, Atlanta"},
+  {id:"H2",group:"H",home:"KSA",away:"URU",date:"2026-06-15",time:"22:00",venue:"Hard Rock Stadium, Miami"},
+  {id:"H3",group:"H",home:"ESP",away:"KSA",date:"2026-06-21",time:"16:00",venue:"Mercedes-Benz Stadium, Atlanta"},
+  {id:"H4",group:"H",home:"URU",away:"CPV",date:"2026-06-21",time:"22:00",venue:"Hard Rock Stadium, Miami"},
+  {id:"H5",group:"H",home:"CPV",away:"KSA",date:"2026-06-26",time:"00:00",venue:"NRG Stadium, Houston"},
+  {id:"H6",group:"H",home:"URU",away:"ESP",date:"2026-06-26",time:"00:00",venue:"Estadio Akron, Guadalajara"},
+  {id:"I1",group:"I",home:"FRA",away:"SEN",date:"2026-06-16",time:"19:00",venue:"MetLife Stadium, New Jersey"},
+  {id:"I2",group:"I",home:"IRQ",away:"NOR",date:"2026-06-16",time:"22:00",venue:"Gillette Stadium, Boston"},
+  {id:"I3",group:"I",home:"FRA",away:"IRQ",date:"2026-06-22",time:"21:00",venue:"Lincoln Financial Field, Philadelphia"},
+  {id:"I4",group:"I",home:"NOR",away:"SEN",date:"2026-06-22",time:"00:00",venue:"MetLife Stadium, New Jersey"},
+  {id:"I5",group:"I",home:"NOR",away:"FRA",date:"2026-06-26",time:"19:00",venue:"Gillette Stadium, Boston"},
+  {id:"I6",group:"I",home:"SEN",away:"IRQ",date:"2026-06-26",time:"19:00",venue:"BMO Field, Toronto"},
+  {id:"J1",group:"J",home:"ARG",away:"ALG",date:"2026-06-16",time:"01:00",venue:"Arrowhead Stadium, Kansas City"},
+  {id:"J2",group:"J",home:"AUT",away:"JOR",date:"2026-06-16",time:"04:00",venue:"Levi's Stadium, Santa Clara"},
+  {id:"J3",group:"J",home:"ARG",away:"AUT",date:"2026-06-22",time:"17:00",venue:"AT&T Stadium, Arlington"},
+  {id:"J4",group:"J",home:"JOR",away:"ALG",date:"2026-06-22",time:"03:00",venue:"Levi's Stadium, Santa Clara"},
+  {id:"J5",group:"J",home:"ALG",away:"AUT",date:"2026-06-27",time:"02:00",venue:"Arrowhead Stadium, Kansas City"},
+  {id:"J6",group:"J",home:"JOR",away:"ARG",date:"2026-06-27",time:"02:00",venue:"AT&T Stadium, Arlington"},
+  {id:"K1",group:"K",home:"POR",away:"COD",date:"2026-06-17",time:"17:00",venue:"NRG Stadium, Houston"},
+  {id:"K2",group:"K",home:"UZB",away:"COL",date:"2026-06-17",time:"02:00",venue:"Estadio Azteca, Mexico City"},
+  {id:"K3",group:"K",home:"POR",away:"UZB",date:"2026-06-23",time:"17:00",venue:"NRG Stadium, Houston"},
+  {id:"K4",group:"K",home:"COL",away:"COD",date:"2026-06-23",time:"02:00",venue:"Estadio Akron, Guadalajara"},
+  {id:"K5",group:"K",home:"COL",away:"POR",date:"2026-06-27",time:"23:30",venue:"Hard Rock Stadium, Miami"},
+  {id:"K6",group:"K",home:"COD",away:"UZB",date:"2026-06-27",time:"23:30",venue:"Mercedes-Benz Stadium, Atlanta"},
+  {id:"L1",group:"L",home:"ENG",away:"CRO",date:"2026-06-17",time:"20:00",venue:"AT&T Stadium, Arlington"},
+  {id:"L2",group:"L",home:"GHA",away:"PAN",date:"2026-06-17",time:"23:00",venue:"BMO Field, Toronto"},
+  {id:"L3",group:"L",home:"ENG",away:"GHA",date:"2026-06-23",time:"20:00",venue:"Gillette Stadium, Boston"},
+  {id:"L4",group:"L",home:"PAN",away:"CRO",date:"2026-06-23",time:"23:00",venue:"BMO Field, Toronto"},
+  {id:"L5",group:"L",home:"PAN",away:"ENG",date:"2026-06-27",time:"21:00",venue:"MetLife Stadium, New Jersey"},
+  {id:"L6",group:"L",home:"CRO",away:"GHA",date:"2026-06-27",time:"21:00",venue:"Lincoln Financial Field, Philadelphia"},
+];
+
+// ══════════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════════
+// KNOCKOUT ENGINE — basé sur les pronostics du joueur
+// ══════════════════════════════════════════════════════════
+
+const GROUPS_LIST = ["A","B","C","D","E","F","G","H","I","J","K","L"];
+
+const GROUP_TEAMS = {
+  A:["MEX","RSA","KOR","CZE"], B:["CAN","BIH","QAT","SUI"],
+  C:["BRA","MAR","HAI","SCO"], D:["USA","PAR","AUS","TUR"],
+  E:["GER","CUW","CIV","ECU"], F:["NED","JPN","SWE","TUN"],
+  G:["BEL","EGY","IRN","NZL"], H:["ESP","CPV","KSA","URU"],
+  I:["FRA","SEN","IRQ","NOR"], J:["ARG","AUT","ALG","JOR"],
+  K:["POR","COD","COL","UZB"], L:["ENG","CRO","GHA","PAN"]
+};
+
+// Calcule le classement d'un groupe à partir d'un set de scores (pronostics ou réels)
+function calcGroupStandings(group, scores) {
+  const groupTeams = GROUP_TEAMS[group];
+  const stats = {};
+  groupTeams.forEach(t => stats[t] = {pts:0,w:0,d:0,l:0,gf:0,ga:0,gd:0,played:0});
+
+  MATCHES.filter(m => m.group === group).forEach(m => {
+    const s = scores[m.id];
+    if (!s || s.h === "" || s.a === "") return;
+    const hg = parseInt(s.h), ag = parseInt(s.a);
+    if (isNaN(hg) || isNaN(ag)) return;
+    const ht = m.home, at = m.away;
+    stats[ht].played++; stats[at].played++;
+    stats[ht].gf+=hg; stats[ht].ga+=ag; stats[ht].gd+=hg-ag;
+    stats[at].gf+=ag; stats[at].ga+=hg; stats[at].gd+=ag-hg;
+    if(hg>ag){stats[ht].pts+=3;stats[ht].w++;stats[at].l++;}
+    else if(hg<ag){stats[at].pts+=3;stats[at].w++;stats[ht].l++;}
+    else{stats[ht].pts+=1;stats[ht].d++;stats[at].pts+=1;stats[at].d++;}
+  });
+
+  return groupTeams
+    .map(t => ({team:t,...stats[t]}))
+    .sort((a,b) => b.pts-a.pts || b.gd-a.gd || b.gf-a.gf || b.w-a.w);
+}
+
+// Meilleurs 3èmes
+function getBestThirds(scores) {
+  return GROUPS_LIST
+    .map(g => { const s=calcGroupStandings(g,scores); return s[2]?{...s[2],group:g}:null; })
+    .filter(Boolean)
+    .sort((a,b) => b.pts-a.pts || b.gd-a.gd || b.gf-a.gf || b.w-a.w)
+    .slice(0,8);
+}
+
+// Construit le bracket R32 à partir des scores donnés (pronostics du joueur)
+function buildR32fromScores(scores) {
+  const get = (g, pos) => {
+    const s = calcGroupStandings(g, scores);
+    const allPlayed = MATCHES.filter(m=>m.group===g)
+      .every(m => { const a=scores[m.id]; return a&&a.h!==""&&a.a!==""; });
+    return allPlayed ? (s[pos]?.team || null) : null;
+  };
+  const t3 = getBestThirds(scores);
+  const g3 = (i) => t3[i]?.team || null;
+
+  return [
+    {id:"R32_1",  home:get("A",0), away:get("B",1)},
+    {id:"R32_2",  home:get("C",0), away:get("D",1)},
+    {id:"R32_3",  home:get("E",0), away:get("F",1)},
+    {id:"R32_4",  home:get("G",0), away:get("H",1)},
+    {id:"R32_5",  home:get("I",0), away:get("J",1)},
+    {id:"R32_6",  home:get("K",0), away:get("L",1)},
+    {id:"R32_7",  home:get("B",0), away:get("A",1)},
+    {id:"R32_8",  home:get("D",0), away:get("C",1)},
+    {id:"R32_9",  home:get("F",0), away:get("E",1)},
+    {id:"R32_10", home:get("H",0), away:get("G",1)},
+    {id:"R32_11", home:get("J",0), away:get("I",1)},
+    {id:"R32_12", home:get("L",0), away:get("K",1)},
+    {id:"R32_13", home:g3(0), away:g3(1)},
+    {id:"R32_14", home:g3(2), away:g3(3)},
+    {id:"R32_15", home:g3(4), away:g3(5)},
+    {id:"R32_16", home:g3(6), away:g3(7)},
+  ];
+}
+
+// Avance le bracket : à partir des pronostics KO du joueur, déduit les équipes suivantes
+function getKoWinner(matchId, koScores, r32) {
+  const pred = koScores[matchId];
+  if (!pred || pred.h === "" || pred.a === "") return null;
+  const h = parseInt(pred.h), a = parseInt(pred.a);
+  if (isNaN(h) || isNaN(a) || h === a) return null; // match nul → pas de vainqueur (KO = prolongations)
+  const match = r32.find(m => m.id === matchId);
+  if (!match) return null;
+  return h > a ? match.home : match.away;
+}
+
+function buildFullBracket(playerGroupPreds, playerKoPreds) {
+  // R32 basé sur pronostics de groupes du joueur
+  const r32 = buildR32fromScores(playerGroupPreds);
+
+  // R16 basé sur pronostics R32 du joueur
+  const r16 = [
+    {id:"R16_1", home: getKoWinner("R32_1",  playerKoPreds, r32), away: getKoWinner("R32_2",  playerKoPreds, r32)},
+    {id:"R16_2", home: getKoWinner("R32_3",  playerKoPreds, r32), away: getKoWinner("R32_4",  playerKoPreds, r32)},
+    {id:"R16_3", home: getKoWinner("R32_5",  playerKoPreds, r32), away: getKoWinner("R32_6",  playerKoPreds, r32)},
+    {id:"R16_4", home: getKoWinner("R32_7",  playerKoPreds, r32), away: getKoWinner("R32_8",  playerKoPreds, r32)},
+    {id:"R16_5", home: getKoWinner("R32_9",  playerKoPreds, r32), away: getKoWinner("R32_10", playerKoPreds, r32)},
+    {id:"R16_6", home: getKoWinner("R32_11", playerKoPreds, r32), away: getKoWinner("R32_12", playerKoPreds, r32)},
+    {id:"R16_7", home: getKoWinner("R32_13", playerKoPreds, r32), away: getKoWinner("R32_14", playerKoPreds, r32)},
+    {id:"R16_8", home: getKoWinner("R32_15", playerKoPreds, r32), away: getKoWinner("R32_16", playerKoPreds, r32)},
+  ];
+
+  // QF
+  const qf = [
+    {id:"QF_1", home: getKoWinner("R16_1", playerKoPreds, r16), away: getKoWinner("R16_2", playerKoPreds, r16)},
+    {id:"QF_2", home: getKoWinner("R16_3", playerKoPreds, r16), away: getKoWinner("R16_4", playerKoPreds, r16)},
+    {id:"QF_3", home: getKoWinner("R16_5", playerKoPreds, r16), away: getKoWinner("R16_6", playerKoPreds, r16)},
+    {id:"QF_4", home: getKoWinner("R16_7", playerKoPreds, r16), away: getKoWinner("R16_8", playerKoPreds, r16)},
+  ];
+
+  // SF
+  const sf = [
+    {id:"SF_1", home: getKoWinner("QF_1", playerKoPreds, qf), away: getKoWinner("QF_2", playerKoPreds, qf)},
+    {id:"SF_2", home: getKoWinner("QF_3", playerKoPreds, qf), away: getKoWinner("QF_4", playerKoPreds, qf)},
+  ];
+
+  // Finale
+  const final = [
+    {id:"F_1", home: getKoWinner("SF_1", playerKoPreds, sf), away: getKoWinner("SF_2", playerKoPreds, sf)},
+  ];
+
+  return { r32, r16, qf, sf, final };
+}
+
+// ══════════════════════════════════════════════════════════
+const ADMIN_PASS = "coupe2026";
+
+
+function getResult(h, a) {
+  if (h===""||a===""||h===null||a===null) return null;
+  const hi=parseInt(h),ai=parseInt(a);
+  if(isNaN(hi)||isNaN(ai)) return null;
+  return hi>ai?"H":hi<ai?"A":"D";
+}
+function calcPoints(pred, actual) {
+  if(!pred||!actual||pred.h===""||pred.a===""||actual.h===""||actual.a==="") return null;
+  if(pred.h===undefined||actual.h===undefined) return null;
+  const pr=getResult(pred.h,pred.a), ar=getResult(actual.h,actual.a);
+  if(pr===null||ar===null) return null;
+  if(String(pred.h)===String(actual.h)&&String(pred.a)===String(actual.a)) return 3;
+  if(pr===ar) return 1;
+  return 0;
+}
+function isStarted(match) {
+  const now=new Date();
+  const d=new Date(`${match.date}T${match.time}:00Z`);
+  return now>=d;
+}
+function teamName(code, lang) {
+  const t=TEAMS[code];
+  if(!t) return code;
+  return lang==="en" ? t.en : t.name;
+}
+function fmt(date) {
+  return new Date(date+"T00:00:00Z").toLocaleDateString("fr-FR",{day:"2-digit",month:"short",timeZone:"UTC"});
+}
+function fmtLocalTime(date, time) {
+  return new Date(date+"T"+time+":00Z").toLocaleTimeString("fr-BE",{hour:"2-digit",minute:"2-digit",timeZone:"Europe/Brussels"});
+}
+function fmtLocalDate(date, time) {
+  return new Date(date+"T"+time+":00Z").toLocaleDateString("fr-BE",{weekday:"long",day:"numeric",month:"long",timeZone:"Europe/Brussels"});
+}
+
+// ══════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════
+let state = {
+  player: null,       // current player id
+  players: {},        // { id: { name, lang, code } }
+  predictions: {},    // { playerId: { matchId: {h,a} } }
+  actuals: {},        // { matchId: {h,a} }
+  tab: "pronostics",
+  group: "ALL",
+  isAdmin: false,
+  lang: "fr",
+  showLoginModal: true,
+  showAdminModal: false,
+  loginMode: "new",   // "new" | "code"
+  loginError: "",
+  saveIndicator: false,
+};
+
+let db, dbRef, dbSet, dbGet, dbOnValue, dbUpdate;
+
+// ══════════════════════════════════════════════════════════
+// FIREBASE
+// ══════════════════════════════════════════════════════════
+function initFirebase() {
+  db = window.__db;
+  dbRef = window.__dbRef;
+  dbSet = window.__dbSet;
+  dbGet = window.__dbGet;
+  dbOnValue = window.__dbOnValue;
+  dbUpdate = window.__dbUpdate;
+
+  // Listen to all data — never re-render while user is interacting
+  dbOnValue(dbRef(db, "/"), snap => {
+    const data = snap.val() || {};
+    // Only update fields that come from OTHER players, not self
+    // Always update actuals, players, koPredictions, koActuals
+    state.players = data.players || {};
+    state.actuals = data.actuals || {};
+    state.koPredictions = data.koPredictions || {};
+    state.koActuals = data.koActuals || {};
+    // For own predictions: only update if not currently editing
+    if (!lastInteraction || Date.now() - lastInteraction > 5000) {
+      state.predictions = data.predictions || {};
+    }
+    // Never re-render if user is actively interacting
+    if (Date.now() - lastInteraction < 5000) {
+      renderPending = true;
+    } else if (document.activeElement?.tagName === "INPUT") {
+      renderPending = true;
+    } else {
+      render();
+    }
+  });
+}
+
+async function savePrediction(matchId, h, a) {
+  if (!state.player) return;
+  const path = `predictions/${state.player}/${matchId}`;
+  await dbUpdate(dbRef(db, path), {h, a});
+  flashSave();
+}
+
+async function saveKoPrediction(matchId, h, a) {
+  if (!state.player) return;
+  await dbUpdate(dbRef(db, `koPredictions/${state.player}/${matchId}`), {h, a});
+  flashSave();
+}
+
+async function saveKoActual(matchId, h, a) {
+  await dbUpdate(dbRef(db, `koActuals/${matchId}`), {h, a});
+  flashSave();
+}
+
+async function saveActual(matchId, h, a) {
+  // Save the actual score
+  await dbUpdate(dbRef(db, `actuals/${matchId}`), {h, a});
+
+  // If it's a group match, check if qualifiers changed and reset affected KO slots
+  const match = MATCHES.find(m => m.id === matchId);
+  if (match) {
+    await resetAffectedKOSlots();
+  }
+  flashSave();
+}
+
+async function saveKoActualWithReset(matchId, h, a) {
+  await dbUpdate(dbRef(db, `koActuals/${matchId}`), {h, a});
+  // Reset downstream KO predictions for all players
+  await resetDownstreamKO(matchId);
+  flashSave();
+}
+
+// Get the real R32 bracket from actual scores
+function buildR32fromActuals() {
+  return buildR32fromScores(state.actuals);
+}
+
+// Reset KO predictions for all players if their predicted teams differ from real teams
+async function resetAffectedKOSlots() {
+  const realR32 = buildR32fromActuals();
+  const players = Object.keys(state.players);
+
+  for (const playerId of players) {
+    const playerGroupPreds = (state.predictions[playerId] || {});
+    const playerR32 = buildR32fromScores(playerGroupPreds);
+    const playerKoPreds = (state.koPredictions?.[playerId] || {});
+
+    for (const realMatch of realR32) {
+      const predMatch = playerR32.find(m => m.id === realMatch.id);
+      if (!predMatch) continue;
+
+      // If real teams differ from predicted teams for this slot
+      const teamsChanged = realMatch.home !== predMatch.home || realMatch.away !== predMatch.away;
+      if (teamsChanged && playerKoPreds[realMatch.id]) {
+        // Erase this player's KO prediction for this slot
+        await dbSet(dbRef(db, `koPredictions/${playerId}/${realMatch.id}`), null);
+        // Also erase all downstream slots
+        await resetDownstreamKOForPlayer(playerId, realMatch.id);
+      }
+    }
+  }
+}
+
+// Map of which matches feed into which next round
+const KO_DOWNSTREAM = {
+  "R32_1":  "R16_1", "R32_2":  "R16_1",
+  "R32_3":  "R16_2", "R32_4":  "R16_2",
+  "R32_5":  "R16_3", "R32_6":  "R16_3",
+  "R32_7":  "R16_4", "R32_8":  "R16_4",
+  "R32_9":  "R16_5", "R32_10": "R16_5",
+  "R32_11": "R16_6", "R32_12": "R16_6",
+  "R32_13": "R16_7", "R32_14": "R16_7",
+  "R32_15": "R16_8", "R32_16": "R16_8",
+  "R16_1":  "QF_1",  "R16_2":  "QF_1",
+  "R16_3":  "QF_2",  "R16_4":  "QF_2",
+  "R16_5":  "QF_3",  "R16_6":  "QF_3",
+  "R16_7":  "QF_4",  "R16_8":  "QF_4",
+  "QF_1":   "SF_1",  "QF_2":   "SF_1",
+  "QF_3":   "SF_2",  "QF_4":   "SF_2",
+  "SF_1":   "F_1",   "SF_2":   "F_1",
+};
+
+async function resetDownstreamKO(matchId) {
+  // Reset for all players
+  const players = Object.keys(state.players);
+  for (const playerId of players) {
+    await resetDownstreamKOForPlayer(playerId, matchId);
+  }
+}
+
+async function resetDownstreamKOForPlayer(playerId, matchId) {
+  const next = KO_DOWNSTREAM[matchId];
+  if (!next) return;
+  await dbSet(dbRef(db, `koPredictions/${playerId}/${next}`), null);
+  await resetDownstreamKOForPlayer(playerId, next);
+}
+
+// ── AUTH ─────────────────────────────────────────────────
+async function hashPassword(password) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password + "wc2026salt");
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function registerPlayer(name, password, lang) {
+  const trimName = name.trim();
+  if (!trimName || !password) return;
+  // Check duplicate name
+  const existing = Object.entries(state.players).find(([,p]) => p.name.toLowerCase() === trimName.toLowerCase());
+  if (existing) {
+    state.loginError = lang === "en"
+      ? `"${trimName}" is already taken. Choose another name or log in.`
+      : `"${trimName}" est déjà pris. Choisis un autre prénom ou connecte-toi.`;
+    render(); bindLoginModal(); return;
+  }
+  const hash = await hashPassword(password);
+  const id = "p_" + Date.now() + "_" + Math.random().toString(36).slice(2,7);
+  await dbSet(dbRef(db, `players/${id}`), {name: trimName, lang, hash});
+  state.player = id;
+  state.lang = lang;
+  localStorage.setItem("wc2026_player", id);
+  localStorage.setItem("wc2026_lang", lang);
+  state.showLoginModal = false;
+  state.loginError = "";
+  render();
+}
+
+async function loginPlayer(name, password, lang) {
+  const trimName = name.trim();
+  const found = Object.entries(state.players).find(([,p]) => p.name.toLowerCase() === trimName.toLowerCase());
+  if (!found) {
+    state.loginError = lang === "en" ? "Name not found. Check spelling or sign up." : "Prénom introuvable. Vérifie l'orthographe ou inscris-toi.";
+    render(); bindLoginModal(); return;
+  }
+  const [id, p] = found;
+  const hash = await hashPassword(password);
+  if (hash !== p.hash) {
+    state.loginError = lang === "en" ? "Wrong password." : "Mot de passe incorrect.";
+    render(); bindLoginModal(); return;
+  }
+  state.player = id;
+  state.lang = p.lang || lang;
+  localStorage.setItem("wc2026_player", id);
+  localStorage.setItem("wc2026_lang", state.lang);
+  state.showLoginModal = false;
+  state.loginError = "";
+  render();
+}
+
+async function deletePlayer(id) {
+  await dbSet(dbRef(db, `players/${id}`), null);
+  await dbSet(dbRef(db, `predictions/${id}`), null);
+  render();
+}
+
+function flashSave() {
+  state.saveIndicator = true;
+  render();
+  setTimeout(() => { state.saveIndicator = false; render(); }, 1800);
+}
+
+// ══════════════════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════════════════
+function render() {
+  const app = document.getElementById("app");
+  const L = state.lang === "en";
+
+  if (state.showLoginModal) {
+    app.innerHTML = renderLoginModal();
+    bindLoginModal();
+    return;
+  }
+
+  const myPlayer = state.players[state.player];
+  const groups = ["ALL","A","B","C","D","E","F","G","H","I","J","K","L"];
+  const filteredMatches = state.group === "ALL"
+    ? [...MATCHES].sort((a,b) => {
+        const da = new Date(a.date+"T"+a.time+":00Z");
+        const db = new Date(b.date+"T"+b.time+":00Z");
+        return da - db;
+      })
+    : MATCHES.filter(m => m.group === state.group);
+  const playerList = Object.entries(state.players);
+
+  app.innerHTML = `
+    <div class="header">
+      <div class="header-left">
+        <div class="header-label">⚽ FIFA World Cup 2026</div>
+        <div class="header-title">${L ? "Predictions" : "Pronostics"}</div>
+        <div class="header-sub">${L ? "Logged in as" : "Connecté en tant que"} <strong>${myPlayer?.name || "?"}</strong></div>
+      </div>
+      <div class="header-right">
+        <div class="save-indicator ${state.saveIndicator?"visible":""}">✓ ${L?"Saved":"Sauvegardé"}</div>
+        <button class="admin-btn ${state.isAdmin?"active":""}" id="admin-btn">
+          ${state.isAdmin ? (L?"⚙ Admin":"⚙ Admin") : (L?"🔒 Admin":"🔒 Admin")}
+        </button>
+        <button class="admin-btn" id="logout-btn" style="font-size:10px;color:var(--text3)">
+          ${L?"Switch player":"Changer joueur"}
+        </button>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab ${state.tab==="pronostics"?"active":""}" data-tab="pronostics" style="font-size:11px;padding:9px 4px">
+        📋 ${L?"Predict.":"Pronos"}
+      </button>
+      <button class="tab ${state.tab==="classement"?"active":""}" data-tab="classement" style="font-size:11px;padding:9px 4px">
+        🏆 ${L?"Ranking":"Classmt"}
+      </button>
+      <button class="tab ${state.tab==="knockout"?"active":""}" data-tab="knockout" style="font-size:11px;padding:9px 4px">
+        ⚔️ ${L?"Knockout":"Phases"}
+      </button>
+    </div>
+
+    ${state.tab === "pronostics" ? renderPronostics(filteredMatches, groups, playerList, L) :
+      state.tab === "classement" ? renderClassement(playerList, L) :
+      renderKnockout(L)}
+
+    ${state.showAdminModal ? renderAdminModal(L) : ""}
+  `;
+
+  bindEvents(groups, filteredMatches, playerList, L);
+}
+
+function renderPronostics(filteredMatches, groups, playerList, L) {
+  return `
+    <div class="legend">
+      <span>🎯 ${L?"Exact score":"Score exact"} = <strong style="color:var(--green)">3 pts</strong></span>
+      <span>✓ ${L?"Correct result":"Bon résultat"} = <strong style="color:var(--yellow)">1 pt</strong></span>
+    </div>
+
+    <div class="group-filter">
+      ${groups.map(g => `
+        <button class="group-btn ${state.group===g?"active":""}" data-group="${g}">
+          ${g==="ALL"?(L?"All":"Tous"):`Grp. ${g}`}
+        </button>
+      `).join("")}
+    </div>
+
+    <div id="matches-list">
+      ${(() => {
+        let lastDate = "";
+        return filteredMatches.map(m => {
+          let header = "";
+          if (state.group === "ALL" && m.date !== lastDate) {
+            lastDate = m.date;
+            const d = new Date(m.date+"T12:00:00Z").toLocaleDateString(L?"en-GB":"fr-BE",{weekday:"long",day:"numeric",month:"long",timeZone:"Europe/Brussels"});
+            header = `<div style="font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--gold);padding:14px 2px 6px;margin-top:4px">${d}</div>`;
+          }
+          return header + renderMatchCard(m, playerList, L);
+        }).join("");
+      })()}
+    </div>
+  `;
+}
+
+function renderMatchCard(m, playerList, L) {
+  const started = isStarted(m);
+  const myPred = (state.predictions[state.player] || {})[m.id] || {h:"",a:""};
+  const actual = state.actuals[m.id] || {h:"",a:""};
+  const pts = started ? calcPoints(myPred, actual) : null;
+  const hasActual = actual.h !== "" && actual.a !== "";
+
+  const ptsHtml = pts !== null ? `<span class="pts-badge pts-${pts}">${pts} pt${pts>1?"s":""}</span>` : "";
+
+  // Others' predictions (only show after match started)
+  let othersHtml = "";
+  if (started && playerList.length > 1) {
+    const otherPreds = playerList
+      .filter(([id]) => id !== state.player)
+      .map(([id, p]) => {
+        const pred = (state.predictions[id] || {})[m.id];
+        if (!pred || pred.h === "") return "";
+        return `<span class="other-pred"><span class="name">${p.name}</span>${pred.h}–${pred.a}</span>`;
+      }).filter(Boolean).join("");
+    if (otherPreds) {
+      othersHtml = `<div class="others-row">${otherPreds}</div>`;
+    }
+  }
+
+  const inputDisabled = started ? "disabled" : "";
+
+  return `
+    <div class="match-card ${started?"started":""}">
+      <div class="match-meta">
+        <div>
+          <span class="match-date">${L?"Group":"Groupe"} ${m.group} · ${fmtLocalDate(m.date, m.time)} · ${fmtLocalTime(m.date, m.time)}</span>
+          <span class="match-venue" style="display:block;margin-top:2px">📍 ${m.venue}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          ${started ? `<span class="locked-badge">🔒 ${L?"STARTED":"COMMENCÉ"}</span>` : ""}
+          ${ptsHtml}
+        </div>
+      </div>
+      <div class="match-teams">
+        <span class="team-flag">${TEAMS[m.home]?.flag||"🏳️"}</span>
+        <span class="team-name">${teamName(m.home, state.lang)}</span>
+        <div class="score-inputs">
+          <input class="score-input" type="number" min="0" max="20"
+            value="${myPred.h}" ${inputDisabled}
+            data-match="${m.id}" data-side="h" />
+          <span class="score-sep">—</span>
+          <input class="score-input" type="number" min="0" max="20"
+            value="${myPred.a}" ${inputDisabled}
+            data-match="${m.id}" data-side="a" />
+        </div>
+        <span class="team-name away">${teamName(m.away, state.lang)}</span>
+        <span class="team-flag">${TEAMS[m.away]?.flag||"🏳️"}</span>
+      </div>
+      ${state.isAdmin ? `
+        <div class="actual-row">
+          <span class="actual-label">${L?"Real score":"Score réel"}</span>
+          <input class="score-input" type="number" min="0" max="20"
+            value="${actual.h}" data-actual="${m.id}" data-side="h" />
+          <span class="score-sep">—</span>
+          <input class="score-input" type="number" min="0" max="20"
+            value="${actual.a}" data-actual="${m.id}" data-side="a" />
+        </div>
+      ` : (hasActual ? `
+        <div class="actual-row">
+          <span class="actual-label">⚽ ${L?"Result":"Résultat"}</span>
+          <span style="font-family:'DM Mono',monospace;font-weight:700;font-size:16px;color:var(--gold)">${actual.h} – ${actual.a}</span>
+        </div>
+      ` : "")}
+      ${othersHtml}
+    </div>
+  `;
+}
+
+function renderClassement(playerList, L) {
+  const played = MATCHES.filter(m => {
+    const a = state.actuals[m.id];
+    return a && a.h !== "" && a.a !== "";
+  }).length;
+
+  const scores = playerList.map(([id, p]) => {
+    let total=0, exact=0, correct=0, played2=0;
+    MATCHES.forEach(m => {
+      const pred = (state.predictions[id]||{})[m.id];
+      const actual = state.actuals[m.id];
+      const pts = calcPoints(pred, actual);
+      if (pts !== null) { total+=pts; played2++; if(pts===3)exact++; if(pts>=1)correct++; }
+    });
+    return {id, name:p.name, total, exact, correct, played:played2};
+  }).sort((a,b) => b.total-a.total || b.exact-a.exact);
+
+  return `
+    <div style="margin-bottom:14px;font-size:12px;color:var(--text2)">
+      ${played} / ${MATCHES.length} ${L?"matches played":"matchs joués"} · ${playerList.length} ${L?"players":"joueurs"}
+    </div>
+    ${scores.length === 0 ? `<div class="empty">Aucun joueur inscrit</div>` : scores.map((s, i) => `
+      <div class="lb-item ${i===0?"first":""}">
+        <span class="lb-rank">${i===0?"🥇":i===1?"🥈":i===2?"🥉":`${i+1}.`}</span>
+        <div class="lb-name">
+          ${s.name}
+          ${s.id===state.player?`<span style="font-size:10px;color:var(--text3);margin-left:6px">(${L?"you":"toi"})</span>`:""}
+        </div>
+        <div class="lb-stats">
+          <span title="${L?"Exact scores":"Scores exacts"}">🎯 ${s.exact}</span>
+          <span title="${L?"Correct results":"Bons résultats"}">✓ ${s.correct}</span>
+        </div>
+        <span class="lb-total ${i===0?"first":""}">${s.total}</span>
+      </div>
+    `).join("")}
+
+    <div style="margin-top:24px;padding:14px 16px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:var(--radius-sm)">
+      <div style="font-size:10px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px">${L?"Legend":"Légende"}</div>
+      <div style="font-size:13px;color:var(--text2);display:flex;flex-direction:column;gap:6px">
+        <div>🎯 = ${L?"Exact scores (3 pts)":"Scores exacts (3 pts)"}</div>
+        <div>✓ = ${L?"Correct result (1 pt)":"Bon résultat (1 pt)"}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderLoginModal() {
+  const L = state.lang === "en";
+  const isLogin = state.loginMode === "login";
+  return `
+    <div class="modal-overlay">
+      <div class="modal">
+        <div style="font-size:36px;margin-bottom:12px;text-align:center">⚽</div>
+        <h2 style="text-align:center;margin-bottom:4px">FIFA World Cup 2026</h2>
+        <p style="text-align:center;margin-bottom:20px;font-size:13px;color:var(--text2)">Pronostics · Predictions</p>
+
+        <!-- Mode tabs -->
+        <div style="display:flex;gap:4px;margin-bottom:20px;background:rgba(255,255,255,0.05);border-radius:10px;padding:4px">
+          <button onclick="state.loginMode='new';state.loginError='';render();bindLoginModal();" style="flex:1;padding:9px;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;background:${!isLogin?'var(--gold)':'transparent'};color:${!isLogin?'#080b10':'var(--text2)'}">
+            ${L?"Sign up":"S'inscrire"}
+          </button>
+          <button onclick="state.loginMode='login';state.loginError='';render();bindLoginModal();" style="flex:1;padding:9px;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;background:${isLogin?'var(--gold)':'transparent'};color:${isLogin?'#080b10':'var(--text2)'}">
+            ${L?"Log in":"Se connecter"}
+          </button>
+        </div>
+
+        <input class="input-field" id="login-name" placeholder="${L?"Your name":"Ton prénom"}" maxlength="24" autocomplete="username" />
+        <input class="input-field" id="login-password" type="password" placeholder="${L?"Password":"Mot de passe"}" maxlength="64" autocomplete="${isLogin?'current-password':'new-password'}" />
+
+        ${!isLogin ? `
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <button class="btn btn-ghost lang-btn" data-lang="fr" style="flex:1;${state.lang==='fr'?'border-color:var(--gold);color:var(--gold)':''}">🇫🇷 Français</button>
+          <button class="btn btn-ghost lang-btn" data-lang="en" style="flex:1;${state.lang==='en'?'border-color:var(--gold);color:var(--gold)':''}">🇬🇧 English</button>
+        </div>` : ""}
+
+        ${state.loginError ? `<div style="color:var(--red);font-size:12px;margin-bottom:10px;padding:8px 12px;background:rgba(255,94,94,0.1);border-radius:8px">${state.loginError}</div>` : ""}
+
+        <button class="btn btn-gold" id="login-submit">
+          ${isLogin ? (L?"Log in 🔑":"Se connecter 🔑") : (L?"Let's go! 🚀":"C'est parti ! 🚀")}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function renderAdminModal(L) {
+  return `
+    <div class="modal-overlay" id="admin-overlay">
+      <div class="modal">
+        <h2>${state.isAdmin ? (L?"✓ Admin mode active":"✓ Mode admin actif") : (L?"Admin mode":"Mode administrateur")}</h2>
+        <p>${state.isAdmin
+          ? (L?"You can now enter real match scores in the Predictions tab.":"Vous pouvez maintenant saisir les scores réels dans l'onglet Pronostics.")
+          : (L?"Enter the password to set real scores.":"Entrez le mot de passe pour saisir les scores réels.")
+        }</p>
+        ${!state.isAdmin ? `
+          <input class="input-field" type="password" id="admin-pass" placeholder="${L?"Password":"Mot de passe"}…" autofocus />
+          <button class="btn btn-gold" id="admin-submit">${L?"Enter":"Entrer"}</button>
+          <div style="font-size:11px;color:var(--text3);margin-top:10px;text-align:center">${L?"Hint: coupe + year":"Indice : coupe + année"}</div>
+        ` : `
+          <button class="btn btn-danger" id="admin-logout">${L?"Logout":"Déconnexion admin"}</button>
+        `}
+        <button class="btn btn-ghost" id="admin-close" style="margin-top:8px">${L?"Cancel":"Annuler"}</button>
+      </div>
+    </div>
+  `;
+}
+
+// ══════════════════════════════════════════════════════════
+// EVENT BINDING
+// ══════════════════════════════════════════════════════════
+function bindLoginModal() {
+  document.querySelectorAll(".lang-btn").forEach(btn => {
+    btn.addEventListener("click", () => { state.lang = btn.dataset.lang; render(); bindLoginModal(); });
+  });
+  const nameInput = document.getElementById("login-name");
+  const passInput = document.getElementById("login-password");
+  const submit = document.getElementById("login-submit");
+
+  const go = () => {
+    const name = nameInput?.value.trim();
+    const pass = passInput?.value;
+    if (!name) { nameInput?.focus(); return; }
+    if (!pass) { passInput?.focus(); return; }
+    if (state.loginMode === "login") {
+      loginPlayer(name, pass, state.lang);
+    } else {
+      registerPlayer(name, pass, state.lang);
+    }
+  };
+
+  submit?.addEventListener("click", go);
+  passInput?.addEventListener("keydown", e => { if (e.key==="Enter") go(); });
+  nameInput?.addEventListener("keydown", e => { if (e.key==="Enter") passInput?.focus(); });
+  nameInput?.focus();
+}
+
+
+function renderKoMatch(match, pred, L, isAdmin, koActual) {
+  const home = match.home;
+  const away = match.away;
+  const homeTeam = home ? TEAMS[home] : null;
+  const awayTeam = away ? TEAMS[away] : null;
+  const tbd = "?";
+  const homeName = homeTeam ? (L ? homeTeam.en : homeTeam.name) : tbd;
+  const awayName = awayTeam ? (L ? awayTeam.en : awayTeam.name) : tbd;
+  const homeFlag = homeTeam ? homeTeam.flag : "❓";
+  const awayFlag = awayTeam ? awayTeam.flag : "❓";
+  const canPredict = home && away;
+  const hasActual = koActual && koActual.h !== "" && koActual.a !== "";
+  const pts = isAdmin ? null : calcPoints(pred||{h:"",a:""}, koActual||{h:"",a:""});
+  const ptsColor = pts===3?"var(--green)":pts===1?"var(--yellow)":pts===0?"var(--red)":"#666";
+
+  const roundLabel = match.id.startsWith("R32")?"1/16":match.id.startsWith("R16")?"1/8":match.id.startsWith("QF")?"1/4":match.id.startsWith("SF")?"1/2":"Finale";
+
+  return `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:5px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">
+      <span style="font-size:9px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase">${roundLabel} · ${match.id.replace(/[A-Z_]+/,"").replace("_","")}</span>
+      ${pts!==null?`<span style="font-size:11px;font-weight:700;color:${ptsColor};background:${ptsColor}22;border-radius:20px;padding:2px 8px">${pts} pt${pts>1?"s":""}</span>`:""}
+    </div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <span style="font-size:16px">${homeFlag}</span>
+      <span style="flex:1;font-size:12px;font-weight:700;color:${home?"var(--text)":"var(--text3)"}">${homeName}</span>
+      <input type="number" min="0" max="20" value="${pred?.h||""}" ${!canPredict?"disabled":""}
+        data-ko="${match.id}" data-side="h"
+        style="width:38px;height:38px;text-align:center;font-size:15px;font-weight:700;font-family:'DM Mono',monospace;background:${canPredict?"rgba(255,255,255,0.08)":"rgba(255,255,255,0.03)"};border:1.5px solid ${canPredict?"var(--border2)":"rgba(255,255,255,0.06)"};border-radius:7px;color:${canPredict?"#fff":"var(--text3)"};outline:none" />
+      <span style="color:var(--text3);font-size:13px">—</span>
+      <input type="number" min="0" max="20" value="${pred?.a||""}" ${!canPredict?"disabled":""}
+        data-ko="${match.id}" data-side="a"
+        style="width:38px;height:38px;text-align:center;font-size:15px;font-weight:700;font-family:'DM Mono',monospace;background:${canPredict?"rgba(255,255,255,0.08)":"rgba(255,255,255,0.03)"};border:1.5px solid ${canPredict?"var(--border2)":"rgba(255,255,255,0.06)"};border-radius:7px;color:${canPredict?"#fff":"var(--text3)"};outline:none" />
+      <span style="flex:1;font-size:12px;font-weight:700;color:${away?"var(--text)":"var(--text3)"};text-align:right">${awayName}</span>
+      <span style="font-size:16px">${awayFlag}</span>
+    </div>
+    ${isAdmin&&home&&away?`
+      <div style="display:flex;align-items:center;gap:6px;padding-top:7px;margin-top:7px;border-top:1px solid var(--border)">
+        <span style="font-size:9px;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase;flex:1">${L?"Real":"Réel"}</span>
+        <input type="number" min="0" max="20" value="${koActual?.h||""}" data-ko-actual="${match.id}" data-side="h"
+          style="width:38px;height:38px;text-align:center;font-size:15px;font-weight:700;font-family:'DM Mono',monospace;background:rgba(255,255,255,0.08);border:1.5px solid var(--border2);border-radius:7px;color:#fff;outline:none" />
+        <span style="color:var(--text3)">—</span>
+        <input type="number" min="0" max="20" value="${koActual?.a||""}" data-ko-actual="${match.id}" data-side="a"
+          style="width:38px;height:38px;text-align:center;font-size:15px;font-weight:700;font-family:'DM Mono',monospace;background:rgba(255,255,255,0.08);border:1.5px solid var(--border2);border-radius:7px;color:#fff;outline:none" />
+      </div>
+    `:hasActual?`
+      <div style="display:flex;align-items:center;gap:6px;padding-top:7px;margin-top:7px;border-top:1px solid var(--border)">
+        <span style="font-size:9px;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase;flex:1">⚽</span>
+        <span style="font-family:'DM Mono',monospace;font-weight:700;font-size:15px;color:var(--gold)">${koActual.h} – ${koActual.a}</span>
+      </div>
+    `:""}
+  </div>`;
+}
+
+function renderRound(matches, playerKoPreds, koActuals, L, isAdmin, title) {
+  return `
+    <div style="margin-bottom:20px">
+      <div style="font-size:10px;color:var(--gold);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(244,197,66,0.2)">${title}</div>
+      ${matches.map(m => {
+        const pred = (playerKoPreds||{})[m.id] || {h:"",a:""};
+        const koActual = (koActuals||{})[m.id] || {h:"",a:""};
+        return renderKoMatch(m, pred, L, isAdmin, koActual);
+      }).join("")}
+    </div>`;
+}
+
+function renderKnockout(L) {
+  const playerGroupPreds = (state.predictions[state.player] || {});
+  const playerKoPreds = (state.koPredictions?.[state.player] || {});
+  const koActuals = state.koActuals || {};
+
+  const bracket = buildFullBracket(playerGroupPreds, playerKoPreds);
+  const {r32, r16, qf, sf, final} = bracket;
+
+  // Count how many group matches the player has predicted
+  const predCount = MATCHES.filter(m => {
+    const p = playerGroupPreds[m.id];
+    return p && p.h !== "" && p.a !== "";
+  }).length;
+
+  const pct = Math.round(predCount / MATCHES.length * 100);
+
+  return `
+    <div style="margin-bottom:16px;padding:12px 14px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;font-size:12px;color:var(--text2)">
+      💡 ${L
+        ? "Your bracket is built from your own group stage predictions. The more you fill in, the more teams appear!"
+        : "Ton tableau est construit à partir de tes pronostics de groupes. Plus tu remplis, plus les équipes apparaissent !"}
+      <div style="margin-top:6px;background:rgba(255,255,255,0.06);border-radius:4px;height:4px;overflow:hidden">
+        <div style="height:4px;width:${pct}%;background:var(--gold);border-radius:4px;transition:width 0.3s"></div>
+      </div>
+      <div style="margin-top:4px;font-size:11px;color:var(--text3)">${predCount} / ${MATCHES.length} ${L?"group matches predicted":"matchs de groupe pronostiqués"}</div>
+    </div>
+
+    ${renderRound(r32, playerKoPreds, koActuals, L, state.isAdmin, L?"Round of 32 — 1/16":"1/16 de finale")}
+    ${renderRound(r16, playerKoPreds, koActuals, L, state.isAdmin, L?"Round of 16 — 1/8":"1/8 de finale")}
+    ${renderRound(qf,  playerKoPreds, koActuals, L, state.isAdmin, L?"Quarter-finals":"1/4 de finale")}
+    ${renderRound(sf,  playerKoPreds, koActuals, L, state.isAdmin, L?"Semi-finals":"Demi-finales")}
+    ${renderRound(final, playerKoPreds, koActuals, L, state.isAdmin, L?"🏆 Final":"🏆 Finale")}
+  `;
+}
+
+// ══════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════
+
+
+
+// ══════════════════════════════════════════════════════════
+// FIREBASE
+// ══════════════════════════════════════════════════════════
+function initFirebase() {
+  db = window.__db;
+  dbRef = window.__dbRef;
+  dbSet = window.__dbSet;
+  dbGet = window.__dbGet;
+  dbOnValue = window.__dbOnValue;
+  dbUpdate = window.__dbUpdate;
+
+  // Listen to all data — never re-render while user is interacting
+  dbOnValue(dbRef(db, "/"), snap => {
+    const data = snap.val() || {};
+    // Only update fields that come from OTHER players, not self
+    // Always update actuals, players, koPredictions, koActuals
+    state.players = data.players || {};
+    state.actuals = data.actuals || {};
+    state.koPredictions = data.koPredictions || {};
+    state.koActuals = data.koActuals || {};
+    // For own predictions: only update if not currently editing
+    if (!lastInteraction || Date.now() - lastInteraction > 5000) {
+      state.predictions = data.predictions || {};
+    }
+    // Never re-render if user is actively interacting
+    if (Date.now() - lastInteraction < 5000) {
+      renderPending = true;
+    } else if (document.activeElement?.tagName === "INPUT") {
+      renderPending = true;
+    } else {
+      render();
+    }
+  });
+}
+
+async function savePrediction(matchId, h, a) {
+  if (!state.player) return;
+  const path = `predictions/${state.player}/${matchId}`;
+  await dbUpdate(dbRef(db, path), {h, a});
+  flashSave();
+}
+
+async function saveKoPrediction(matchId, h, a) {
+  if (!state.player) return;
+  await dbUpdate(dbRef(db, `koPredictions/${state.player}/${matchId}`), {h, a});
+  flashSave();
+}
+
+async function saveKoActual(matchId, h, a) {
+  await dbUpdate(dbRef(db, `koActuals/${matchId}`), {h, a});
+  flashSave();
+}
+
+async function saveActual(matchId, h, a) {
+  // Save the actual score
+  await dbUpdate(dbRef(db, `actuals/${matchId}`), {h, a});
+
+  // If it's a group match, check if qualifiers changed and reset affected KO slots
+  const match = MATCHES.find(m => m.id === matchId);
+  if (match) {
+    await resetAffectedKOSlots();
+  }
+  flashSave();
+}
+
+
+
+async function resetDownstreamKO(matchId) {
+  // Reset for all players
+  const players = Object.keys(state.players);
+  for (const playerId of players) {
+    await resetDownstreamKOForPlayer(playerId, matchId);
+  }
+}
+
+async function resetDownstreamKOForPlayer(playerId, matchId) {
+  const next = KO_DOWNSTREAM[matchId];
+  if (!next) return;
+  await dbSet(dbRef(db, `koPredictions/${playerId}/${next}`), null);
+  await resetDownstreamKOForPlayer(playerId, next);
+}
+
+// ── AUTH ─────────────────────────────────────────────────
+async function hashPassword(password) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password + "wc2026salt");
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function registerPlayer(name, password, lang) {
+  const trimName = name.trim();
+  if (!trimName || !password) return;
+  // Check duplicate name
+  const existing = Object.entries(state.players).find(([,p]) => p.name.toLowerCase() === trimName.toLowerCase());
+  if (existing) {
+    state.loginError = lang === "en"
+      ? `"${trimName}" is already taken. Choose another name or log in.`
+      : `"${trimName}" est déjà pris. Choisis un autre prénom ou connecte-toi.`;
+    render(); bindLoginModal(); return;
+  }
+  const hash = await hashPassword(password);
+  const id = "p_" + Date.now() + "_" + Math.random().toString(36).slice(2,7);
+  await dbSet(dbRef(db, `players/${id}`), {name: trimName, lang, hash});
+  state.player = id;
+  state.lang = lang;
+  localStorage.setItem("wc2026_player", id);
+  localStorage.setItem("wc2026_lang", lang);
+  state.showLoginModal = false;
+  state.loginError = "";
+  render();
+}
+
+async function loginPlayer(name, password, lang) {
+  const trimName = name.trim();
+  const found = Object.entries(state.players).find(([,p]) => p.name.toLowerCase() === trimName.toLowerCase());
+  if (!found) {
+    state.loginError = lang === "en" ? "Name not found. Check spelling or sign up." : "Prénom introuvable. Vérifie l'orthographe ou inscris-toi.";
+    render(); bindLoginModal(); return;
+  }
+  const [id, p] = found;
+  const hash = await hashPassword(password);
+  if (hash !== p.hash) {
+    state.loginError = lang === "en" ? "Wrong password." : "Mot de passe incorrect.";
+    render(); bindLoginModal(); return;
+  }
+  state.player = id;
+  state.lang = p.lang || lang;
+  localStorage.setItem("wc2026_player", id);
+  localStorage.setItem("wc2026_lang", state.lang);
+  state.showLoginModal = false;
+  state.loginError = "";
+  render();
+}
+
+async function deletePlayer(id) {
+  await dbSet(dbRef(db, `players/${id}`), null);
+  await dbSet(dbRef(db, `predictions/${id}`), null);
+  render();
+}
+
+function flashSave() {
+  state.saveIndicator = true;
+  render();
+  setTimeout(() => { state.saveIndicator = false; render(); }, 1800);
+}
+
+// ══════════════════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════════════════
+function render() {
+  const app = document.getElementById("app");
+  const L = state.lang === "en";
+
+  if (state.showLoginModal) {
+    app.innerHTML = renderLoginModal();
+    bindLoginModal();
+    return;
+  }
+
+  const myPlayer = state.players[state.player];
+  const groups = ["ALL","A","B","C","D","E","F","G","H","I","J","K","L"];
+  const filteredMatches = state.group === "ALL"
+    ? [...MATCHES].sort((a,b) => {
+        const da = new Date(a.date+"T"+a.time+":00Z");
+        const db = new Date(b.date+"T"+b.time+":00Z");
+        return da - db;
+      })
+    : MATCHES.filter(m => m.group === state.group);
+  const playerList = Object.entries(state.players);
+
+  app.innerHTML = `
+    <div class="header">
+      <div class="header-left">
+        <div class="header-label">⚽ FIFA World Cup 2026</div>
+        <div class="header-title">${L ? "Predictions" : "Pronostics"}</div>
+        <div class="header-sub">${L ? "Logged in as" : "Connecté en tant que"} <strong>${myPlayer?.name || "?"}</strong></div>
+      </div>
+      <div class="header-right">
+        <div class="save-indicator ${state.saveIndicator?"visible":""}">✓ ${L?"Saved":"Sauvegardé"}</div>
+        <button class="admin-btn ${state.isAdmin?"active":""}" id="admin-btn">
+          ${state.isAdmin ? (L?"⚙ Admin":"⚙ Admin") : (L?"🔒 Admin":"🔒 Admin")}
+        </button>
+        <button class="admin-btn" id="logout-btn" style="font-size:10px;color:var(--text3)">
+          ${L?"Switch player":"Changer joueur"}
+        </button>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab ${state.tab==="pronostics"?"active":""}" data-tab="pronostics" style="font-size:11px;padding:9px 4px">
+        📋 ${L?"Predict.":"Pronos"}
+      </button>
+      <button class="tab ${state.tab==="classement"?"active":""}" data-tab="classement" style="font-size:11px;padding:9px 4px">
+        🏆 ${L?"Ranking":"Classmt"}
+      </button>
+      <button class="tab ${state.tab==="knockout"?"active":""}" data-tab="knockout" style="font-size:11px;padding:9px 4px">
+        ⚔️ ${L?"Knockout":"Phases"}
+      </button>
+    </div>
+
+    ${state.tab === "pronostics" ? renderPronostics(filteredMatches, groups, playerList, L) :
+      state.tab === "classement" ? renderClassement(playerList, L) :
+      renderKnockout(L)}
+
+    ${state.showAdminModal ? renderAdminModal(L) : ""}
+  `;
+
+  bindEvents(groups, filteredMatches, playerList, L);
+}
+
+function renderPronostics(filteredMatches, groups, playerList, L) {
+  return `
+    <div class="legend">
+      <span>🎯 ${L?"Exact score":"Score exact"} = <strong style="color:var(--green)">3 pts</strong></span>
+      <span>✓ ${L?"Correct result":"Bon résultat"} = <strong style="color:var(--yellow)">1 pt</strong></span>
+    </div>
+
+    <div class="group-filter">
+      ${groups.map(g => `
+        <button class="group-btn ${state.group===g?"active":""}" data-group="${g}">
+          ${g==="ALL"?(L?"All":"Tous"):`Grp. ${g}`}
+        </button>
+      `).join("")}
+    </div>
+
+    <div id="matches-list">
+      ${(() => {
+        let lastDate = "";
+        return filteredMatches.map(m => {
+          let header = "";
+          if (state.group === "ALL" && m.date !== lastDate) {
+            lastDate = m.date;
+            const d = new Date(m.date+"T12:00:00Z").toLocaleDateString(L?"en-GB":"fr-BE",{weekday:"long",day:"numeric",month:"long",timeZone:"Europe/Brussels"});
+            header = `<div style="font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--gold);padding:14px 2px 6px;margin-top:4px">${d}</div>`;
+          }
+          return header + renderMatchCard(m, playerList, L);
+        }).join("");
+      })()}
+    </div>
+  `;
+}
+
+function renderMatchCard(m, playerList, L) {
+  const started = isStarted(m);
+  const myPred = (state.predictions[state.player] || {})[m.id] || {h:"",a:""};
+  const actual = state.actuals[m.id] || {h:"",a:""};
+  const pts = started ? calcPoints(myPred, actual) : null;
+  const hasActual = actual.h !== "" && actual.a !== "";
+
+  const ptsHtml = pts !== null ? `<span class="pts-badge pts-${pts}">${pts} pt${pts>1?"s":""}</span>` : "";
+
+  // Others' predictions (only show after match started)
+  let othersHtml = "";
+  if (started && playerList.length > 1) {
+    const otherPreds = playerList
+      .filter(([id]) => id !== state.player)
+      .map(([id, p]) => {
+        const pred = (state.predictions[id] || {})[m.id];
+        if (!pred || pred.h === "") return "";
+        return `<span class="other-pred"><span class="name">${p.name}</span>${pred.h}–${pred.a}</span>`;
+      }).filter(Boolean).join("");
+    if (otherPreds) {
+      othersHtml = `<div class="others-row">${otherPreds}</div>`;
+    }
+  }
+
+  const inputDisabled = started ? "disabled" : "";
+
+  return `
+    <div class="match-card ${started?"started":""}">
+      <div class="match-meta">
+        <div>
+          <span class="match-date">${L?"Group":"Groupe"} ${m.group} · ${fmtLocalDate(m.date, m.time)} · ${fmtLocalTime(m.date, m.time)}</span>
+          <span class="match-venue" style="display:block;margin-top:2px">📍 ${m.venue}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          ${started ? `<span class="locked-badge">🔒 ${L?"STARTED":"COMMENCÉ"}</span>` : ""}
+          ${ptsHtml}
+        </div>
+      </div>
+      <div class="match-teams">
+        <span class="team-flag">${TEAMS[m.home]?.flag||"🏳️"}</span>
+        <span class="team-name">${teamName(m.home, state.lang)}</span>
+        <div class="score-inputs">
+          <input class="score-input" type="number" min="0" max="20"
+            value="${myPred.h}" ${inputDisabled}
+            data-match="${m.id}" data-side="h" />
+          <span class="score-sep">—</span>
+          <input class="score-input" type="number" min="0" max="20"
+            value="${myPred.a}" ${inputDisabled}
+            data-match="${m.id}" data-side="a" />
+        </div>
+        <span class="team-name away">${teamName(m.away, state.lang)}</span>
+        <span class="team-flag">${TEAMS[m.away]?.flag||"🏳️"}</span>
+      </div>
+      ${state.isAdmin ? `
+        <div class="actual-row">
+          <span class="actual-label">${L?"Real score":"Score réel"}</span>
+          <input class="score-input" type="number" min="0" max="20"
+            value="${actual.h}" data-actual="${m.id}" data-side="h" />
+          <span class="score-sep">—</span>
+          <input class="score-input" type="number" min="0" max="20"
+            value="${actual.a}" data-actual="${m.id}" data-side="a" />
+        </div>
+      ` : (hasActual ? `
+        <div class="actual-row">
+          <span class="actual-label">⚽ ${L?"Result":"Résultat"}</span>
+          <span style="font-family:'DM Mono',monospace;font-weight:700;font-size:16px;color:var(--gold)">${actual.h} – ${actual.a}</span>
+        </div>
+      ` : "")}
+      ${othersHtml}
+    </div>
+  `;
+}
+
+function renderClassement(playerList, L) {
+  const played = MATCHES.filter(m => {
+    const a = state.actuals[m.id];
+    return a && a.h !== "" && a.a !== "";
+  }).length;
+
+  const scores = playerList.map(([id, p]) => {
+    let total=0, exact=0, correct=0, played2=0;
+    MATCHES.forEach(m => {
+      const pred = (state.predictions[id]||{})[m.id];
+      const actual = state.actuals[m.id];
+      const pts = calcPoints(pred, actual);
+      if (pts !== null) { total+=pts; played2++; if(pts===3)exact++; if(pts>=1)correct++; }
+    });
+    return {id, name:p.name, total, exact, correct, played:played2};
+  }).sort((a,b) => b.total-a.total || b.exact-a.exact);
+
+  return `
+    <div style="margin-bottom:14px;font-size:12px;color:var(--text2)">
+      ${played} / ${MATCHES.length} ${L?"matches played":"matchs joués"} · ${playerList.length} ${L?"players":"joueurs"}
+    </div>
+    ${scores.length === 0 ? `<div class="empty">Aucun joueur inscrit</div>` : scores.map((s, i) => `
+      <div class="lb-item ${i===0?"first":""}">
+        <span class="lb-rank">${i===0?"🥇":i===1?"🥈":i===2?"🥉":`${i+1}.`}</span>
+        <div class="lb-name">
+          ${s.name}
+          ${s.id===state.player?`<span style="font-size:10px;color:var(--text3);margin-left:6px">(${L?"you":"toi"})</span>`:""}
+        </div>
+        <div class="lb-stats">
+          <span title="${L?"Exact scores":"Scores exacts"}">🎯 ${s.exact}</span>
+          <span title="${L?"Correct results":"Bons résultats"}">✓ ${s.correct}</span>
+        </div>
+        <span class="lb-total ${i===0?"first":""}">${s.total}</span>
+      </div>
+    `).join("")}
+
+    <div style="margin-top:24px;padding:14px 16px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:var(--radius-sm)">
+      <div style="font-size:10px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px">${L?"Legend":"Légende"}</div>
+      <div style="font-size:13px;color:var(--text2);display:flex;flex-direction:column;gap:6px">
+        <div>🎯 = ${L?"Exact scores (3 pts)":"Scores exacts (3 pts)"}</div>
+        <div>✓ = ${L?"Correct result (1 pt)":"Bon résultat (1 pt)"}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderLoginModal() {
+  const L = state.lang === "en";
+  const isLogin = state.loginMode === "login";
+  return `
+    <div class="modal-overlay">
+      <div class="modal">
+        <div style="font-size:36px;margin-bottom:12px;text-align:center">⚽</div>
+        <h2 style="text-align:center;margin-bottom:4px">FIFA World Cup 2026</h2>
+        <p style="text-align:center;margin-bottom:20px;font-size:13px;color:var(--text2)">Pronostics · Predictions</p>
+
+        <!-- Mode tabs -->
+        <div style="display:flex;gap:4px;margin-bottom:20px;background:rgba(255,255,255,0.05);border-radius:10px;padding:4px">
+          <button onclick="state.loginMode='new';state.loginError='';render();bindLoginModal();" style="flex:1;padding:9px;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;background:${!isLogin?'var(--gold)':'transparent'};color:${!isLogin?'#080b10':'var(--text2)'}">
+            ${L?"Sign up":"S'inscrire"}
+          </button>
+          <button onclick="state.loginMode='login';state.loginError='';render();bindLoginModal();" style="flex:1;padding:9px;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;background:${isLogin?'var(--gold)':'transparent'};color:${isLogin?'#080b10':'var(--text2)'}">
+            ${L?"Log in":"Se connecter"}
+          </button>
+        </div>
+
+        <input class="input-field" id="login-name" placeholder="${L?"Your name":"Ton prénom"}" maxlength="24" autocomplete="username" />
+        <input class="input-field" id="login-password" type="password" placeholder="${L?"Password":"Mot de passe"}" maxlength="64" autocomplete="${isLogin?'current-password':'new-password'}" />
+
+        ${!isLogin ? `
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <button class="btn btn-ghost lang-btn" data-lang="fr" style="flex:1;${state.lang==='fr'?'border-color:var(--gold);color:var(--gold)':''}">🇫🇷 Français</button>
+          <button class="btn btn-ghost lang-btn" data-lang="en" style="flex:1;${state.lang==='en'?'border-color:var(--gold);color:var(--gold)':''}">🇬🇧 English</button>
+        </div>` : ""}
+
+        ${state.loginError ? `<div style="color:var(--red);font-size:12px;margin-bottom:10px;padding:8px 12px;background:rgba(255,94,94,0.1);border-radius:8px">${state.loginError}</div>` : ""}
+
+        <button class="btn btn-gold" id="login-submit">
+          ${isLogin ? (L?"Log in 🔑":"Se connecter 🔑") : (L?"Let's go! 🚀":"C'est parti ! 🚀")}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function renderAdminModal(L) {
+  return `
+    <div class="modal-overlay" id="admin-overlay">
+      <div class="modal">
+        <h2>${state.isAdmin ? (L?"✓ Admin mode active":"✓ Mode admin actif") : (L?"Admin mode":"Mode administrateur")}</h2>
+        <p>${state.isAdmin
+          ? (L?"You can now enter real match scores in the Predictions tab.":"Vous pouvez maintenant saisir les scores réels dans l'onglet Pronostics.")
+          : (L?"Enter the password to set real scores.":"Entrez le mot de passe pour saisir les scores réels.")
+        }</p>
+        ${!state.isAdmin ? `
+          <input class="input-field" type="password" id="admin-pass" placeholder="${L?"Password":"Mot de passe"}…" autofocus />
+          <button class="btn btn-gold" id="admin-submit">${L?"Enter":"Entrer"}</button>
+          <div style="font-size:11px;color:var(--text3);margin-top:10px;text-align:center">${L?"Hint: coupe + year":"Indice : coupe + année"}</div>
+        ` : `
+          <button class="btn btn-danger" id="admin-logout">${L?"Logout":"Déconnexion admin"}</button>
+        `}
+        <button class="btn btn-ghost" id="admin-close" style="margin-top:8px">${L?"Cancel":"Annuler"}</button>
+      </div>
+    </div>
+  `;
+}
+
+// ══════════════════════════════════════════════════════════
+// EVENT BINDING
+// ══════════════════════════════════════════════════════════
+function bindLoginModal() {
+  document.querySelectorAll(".lang-btn").forEach(btn => {
+    btn.addEventListener("click", () => { state.lang = btn.dataset.lang; render(); bindLoginModal(); });
+  });
+  const nameInput = document.getElementById("login-name");
+  const passInput = document.getElementById("login-password");
+  const submit = document.getElementById("login-submit");
+
+  const go = () => {
+    const name = nameInput?.value.trim();
+    const pass = passInput?.value;
+    if (!name) { nameInput?.focus(); return; }
+    if (!pass) { passInput?.focus(); return; }
+    if (state.loginMode === "login") {
+      loginPlayer(name, pass, state.lang);
+    } else {
+      registerPlayer(name, pass, state.lang);
+    }
+  };
+
+  submit?.addEventListener("click", go);
+  passInput?.addEventListener("keydown", e => { if (e.key==="Enter") go(); });
+  nameInput?.addEventListener("keydown", e => { if (e.key==="Enter") passInput?.focus(); });
+  nameInput?.focus();
+}
+
+
+function bindEvents(groups, filteredMatches, playerList, L) {
+  // Tabs
+  document.querySelectorAll(".tab").forEach(btn => {
+    btn.addEventListener("click", () => { state.tab = btn.dataset.tab; render(); });
+  });
+
+  // Group filter
+  document.querySelectorAll(".group-btn").forEach(btn => {
+    btn.addEventListener("click", () => { state.group = btn.dataset.group; render(); });
+  });
+
+  // Prediction inputs — save on blur only to avoid focus loss
+  const debounceTimers = {};
+  document.querySelectorAll(".score-input[data-match]").forEach(input => {
+    input.addEventListener("focus", () => { activeInputId = input.dataset.match + input.dataset.side; lastInteraction = Date.now(); });
+    input.addEventListener("input", () => {
+      lastInteraction = Date.now();
+      // Update local state immediately, no Firebase call
+      const matchId = input.dataset.match;
+      const side = input.dataset.side;
+      if (!state.predictions[state.player]) state.predictions[state.player] = {};
+      if (!state.predictions[state.player][matchId]) state.predictions[state.player][matchId] = {h:"",a:""};
+      state.predictions[state.player][matchId][side] = input.value;
+    });
+    input.addEventListener("blur", () => {
+      lastInteraction = Date.now();
+      // Save to Firebase only when leaving the field
+      const matchId = input.dataset.match;
+      const pred = (state.predictions[state.player]||{})[matchId] || {h:"",a:""};
+      savePrediction(matchId, pred.h, pred.a);
+      activeInputId = null;
+      setTimeout(() => {
+        if (document.activeElement?.tagName !== "INPUT" && renderPending) {
+          renderPending = false; render();
+        }
+      }, 150);
+    });
+  });
+
+  // Actual score inputs — save on blur only
+  document.querySelectorAll(".score-input[data-actual]").forEach(input => {
+    input.addEventListener("focus", () => { activeInputId = "act_"+input.dataset.actual+input.dataset.side; lastInteraction = Date.now(); });
+    input.addEventListener("input", () => {
+      lastInteraction = Date.now();
+      const matchId = input.dataset.actual;
+      const side = input.dataset.side;
+      if (!state.actuals[matchId]) state.actuals[matchId] = {h:"",a:""};
+      state.actuals[matchId][side] = input.value;
+    });
+    input.addEventListener("blur", () => {
+      const matchId = input.dataset.actual;
+      const actual = state.actuals[matchId] || {h:"",a:""};
+      saveActual(matchId, actual.h, actual.a);
+      activeInputId = null;
+      setTimeout(() => {
+        if (document.activeElement?.tagName !== "INPUT" && renderPending) {
+          renderPending = false; render();
+        }
+      }, 150);
+    });
+  });
+
+  // KO prediction inputs
+  const koTimers = {};
+  document.querySelectorAll("input[data-ko]").forEach(input => {
+    input.addEventListener("focus", () => { activeInputId = "ko_"+input.dataset.ko+input.dataset.side; });
+    input.addEventListener("input", () => {
+      const matchId = input.dataset.ko;
+      const side = input.dataset.side;
+      if (!state.koPredictions) state.koPredictions = {};
+      if (!state.koPredictions[state.player]) state.koPredictions[state.player] = {};
+      if (!state.koPredictions[state.player][matchId]) state.koPredictions[state.player][matchId] = {h:"",a:""};
+      state.koPredictions[state.player][matchId][side] = input.value;
+    });
+    input.addEventListener("blur", () => {
+      const matchId = input.dataset.ko;
+      const pred = (state.koPredictions?.[state.player]||{})[matchId] || {h:"",a:""};
+      saveKoPrediction(matchId, pred.h, pred.a);
+      activeInputId = null;
+      setTimeout(() => { if(document.activeElement?.tagName!=="INPUT"&&renderPending){renderPending=false;render();} }, 150);
+    });
+  });
+
+  // KO actual inputs
+  document.querySelectorAll("input[data-ko-actual]").forEach(input => {
+    input.addEventListener("focus", () => { activeInputId = "koa_"+input.dataset.koActual+input.dataset.side; lastInteraction = Date.now(); });
+    input.addEventListener("input", () => {
+      lastInteraction = Date.now();
+      const matchId = input.dataset.koActual;
+      const side = input.dataset.side;
+      if (!state.koActuals[matchId]) state.koActuals[matchId] = {h:"",a:""};
+      state.koActuals[matchId][side] = input.value;
+    });
+    input.addEventListener("blur", () => {
+      lastInteraction = Date.now();
+      const matchId = input.dataset.koActual;
+      const actual = state.koActuals[matchId] || {h:"",a:""};
+      saveKoActualWithReset(matchId, actual.h, actual.a);
+      activeInputId = null;
+      setTimeout(() => { if(document.activeElement?.tagName!=="INPUT"&&renderPending){renderPending=false;render();} }, 150);
+    });
+  });
+
+  // Admin button
+  document.getElementById("admin-btn")?.addEventListener("click", () => {
+    state.showAdminModal = true; render();
+  });
+
+  // Admin modal
+  document.getElementById("admin-overlay")?.addEventListener("click", e => {
+    if (e.target.id==="admin-overlay") { state.showAdminModal = false; render(); }
+  });
+  document.getElementById("admin-close")?.addEventListener("click", () => {
+    state.showAdminModal = false; render();
+  });
+  document.getElementById("admin-submit")?.addEventListener("click", () => {
+    const pass = document.getElementById("admin-pass")?.value;
+    if (pass === ADMIN_PASS) { state.isAdmin = true; state.showAdminModal = false; render(); }
+    else { document.getElementById("admin-pass").value=""; document.getElementById("admin-pass").placeholder="❌ Incorrect"; }
+  });
+  document.getElementById("admin-pass")?.addEventListener("keydown", e => {
+    if (e.key==="Enter") document.getElementById("admin-submit")?.click();
+  });
+  document.getElementById("admin-logout")?.addEventListener("click", () => {
+    state.isAdmin = false; state.showAdminModal = false; render();
+  });
+
+  // Logout / switch player
+  document.getElementById("logout-btn")?.addEventListener("click", () => {
+    localStorage.removeItem("wc2026_player");
+    localStorage.removeItem("wc2026_lang");
+    state.player = null; state.lang = "fr"; state.showLoginModal = true; render();
+    bindLoginModal();
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════════════════════
+function boot() {
+  // Check saved player
+  const savedId = localStorage.getItem("wc2026_player");
+  const savedLang = localStorage.getItem("wc2026_lang");
+  if (savedId) {
+    state.player = savedId;
+    state.lang = savedLang || "fr";
+    state.showLoginModal = false;
+  }
+
+  if (window.__firebaseReady) {
+    initFirebase();
+  } else {
+    document.addEventListener("firebase-ready", initFirebase);
+  }
+
+  // Timeout fallback if Firebase config not set
+  setTimeout(() => {
+    if (!window.__db) {
+      document.getElementById("app").innerHTML = `
+        <div style="text-align:center;padding:60px 20px;color:var(--text2);line-height:2">
+          <div style="font-size:40px;margin-bottom:16px">🔧</div>
+          <strong style="color:#fff;font-size:16px">Configuration Firebase manquante</strong><br>
+          Ouvre le fichier <code>index.html</code> et remplace les valeurs<br>
+          <code>REMPLACE_PAR_TON_*</code> par tes clés Firebase.
+        </div>
+      `;
+    }
+  }, 5000);
+}
+
+boot();
+
+
+</script>
+</body>
+</html>
