@@ -620,16 +620,16 @@ function initFirebase() {
     state.actuals = data.actuals || {};
     state.koPredictions = data.koPredictions || {};
     state.koActuals = data.koActuals || {};
-    // Never overwrite own predictions from Firebase while on pronostics tab
-    if (state.tab !== "pronostics") {
-      state.predictions = data.predictions || {};
+    // Always load predictions — first load takes everything, subsequent only merge others
+    const _incoming = data.predictions || {};
+    if (!state._predictionsLoaded) {
+      state.predictions = _incoming;
+      state._predictionsLoaded = true;
+    } else if (state.tab !== "pronostics") {
+      state.predictions = _incoming;
     } else {
-      // Merge other players predictions but not own
-      const incoming = data.predictions || {};
-      Object.keys(incoming).forEach(pid => {
-        if (pid !== state.player) {
-          state.predictions[pid] = incoming[pid];
-        }
+      Object.keys(_incoming).forEach(pid => {
+        if (pid !== state.player) state.predictions[pid] = _incoming[pid];
       });
     }
     // Only re-render if NOT on pronostics tab, or if no input is focused
