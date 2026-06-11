@@ -613,24 +613,28 @@ function initFirebase() {
   dbOnValue = window.__dbOnValue;
   dbUpdate = window.__dbUpdate;
 
-  // Listen to all data — never re-render while user is interacting
+  // Listen to all data
   dbOnValue(dbRef(db, "/"), snap => {
     const data = snap.val() || {};
-    // Only update fields that come from OTHER players, not self
-    // Always update actuals, players, koPredictions, koActuals
     state.players = data.players || {};
     state.actuals = data.actuals || {};
     state.koPredictions = data.koPredictions || {};
     state.koActuals = data.koActuals || {};
-    // For own predictions: only update if not currently editing
-    if (!lastInteraction || Date.now() - lastInteraction > 5000) {
+    // Never overwrite own predictions from Firebase while on pronostics tab
+    if (state.tab !== "pronostics") {
       state.predictions = data.predictions || {};
+    } else {
+      // Merge other players predictions but not own
+      const incoming = data.predictions || {};
+      Object.keys(incoming).forEach(pid => {
+        if (pid !== state.player) {
+          state.predictions[pid] = incoming[pid];
+        }
+      });
     }
-    // Never re-render if user is actively interacting
-    if (Date.now() - lastInteraction < 5000) {
-      renderPending = true;
-    } else if (document.activeElement?.tagName === "INPUT") {
-      renderPending = true;
+    // Only re-render if NOT on pronostics tab, or if no input is focused
+    if (state.tab === "pronostics") {
+      renderPending = true; // defer until blur or tab change
     } else {
       render();
     }
@@ -943,7 +947,7 @@ function renderMatchCard(m, playerList, L) {
       <div class="match-teams">
         <span class="team-flag">${TEAMS[m.home]?.flag||"🏳️"}</span>
         <span class="team-name">${teamName(m.home, state.lang)}</span>
-        <div class="score-inputs">
+        <div class="score-inputs" style="display:flex;align-items:center;gap:6px">
           <input class="score-input" type="number" min="0" max="20"
             value="${myPred.h}" ${inputDisabled}
             data-match="${m.id}" data-side="h" />
@@ -951,6 +955,7 @@ function renderMatchCard(m, playerList, L) {
           <input class="score-input" type="number" min="0" max="20"
             value="${myPred.a}" ${inputDisabled}
             data-match="${m.id}" data-side="a" />
+          ${!started ? `<button class="validate-btn" data-validate="${m.id}" title="${L?"Save":"Valider"}" style="width:32px;height:44px;border:none;border-radius:8px;background:rgba(244,197,66,0.15);color:var(--gold);font-size:16px;cursor:pointer;flex-shrink:0;transition:background 0.15s" onmouseover="this.style.background='rgba(244,197,66,0.3)'" onmouseout="this.style.background='rgba(244,197,66,0.15)'">✓</button>` : ""}
         </div>
         <span class="team-name away">${teamName(m.away, state.lang)}</span>
         <span class="team-flag">${TEAMS[m.away]?.flag||"🏳️"}</span>
@@ -1229,24 +1234,28 @@ function initFirebase() {
   dbOnValue = window.__dbOnValue;
   dbUpdate = window.__dbUpdate;
 
-  // Listen to all data — never re-render while user is interacting
+  // Listen to all data
   dbOnValue(dbRef(db, "/"), snap => {
     const data = snap.val() || {};
-    // Only update fields that come from OTHER players, not self
-    // Always update actuals, players, koPredictions, koActuals
     state.players = data.players || {};
     state.actuals = data.actuals || {};
     state.koPredictions = data.koPredictions || {};
     state.koActuals = data.koActuals || {};
-    // For own predictions: only update if not currently editing
-    if (!lastInteraction || Date.now() - lastInteraction > 5000) {
+    // Never overwrite own predictions from Firebase while on pronostics tab
+    if (state.tab !== "pronostics") {
       state.predictions = data.predictions || {};
+    } else {
+      // Merge other players predictions but not own
+      const incoming = data.predictions || {};
+      Object.keys(incoming).forEach(pid => {
+        if (pid !== state.player) {
+          state.predictions[pid] = incoming[pid];
+        }
+      });
     }
-    // Never re-render if user is actively interacting
-    if (Date.now() - lastInteraction < 5000) {
-      renderPending = true;
-    } else if (document.activeElement?.tagName === "INPUT") {
-      renderPending = true;
+    // Only re-render if NOT on pronostics tab, or if no input is focused
+    if (state.tab === "pronostics") {
+      renderPending = true; // defer until blur or tab change
     } else {
       render();
     }
@@ -1504,7 +1513,7 @@ function renderMatchCard(m, playerList, L) {
       <div class="match-teams">
         <span class="team-flag">${TEAMS[m.home]?.flag||"🏳️"}</span>
         <span class="team-name">${teamName(m.home, state.lang)}</span>
-        <div class="score-inputs">
+        <div class="score-inputs" style="display:flex;align-items:center;gap:6px">
           <input class="score-input" type="number" min="0" max="20"
             value="${myPred.h}" ${inputDisabled}
             data-match="${m.id}" data-side="h" />
@@ -1512,6 +1521,7 @@ function renderMatchCard(m, playerList, L) {
           <input class="score-input" type="number" min="0" max="20"
             value="${myPred.a}" ${inputDisabled}
             data-match="${m.id}" data-side="a" />
+          ${!started ? `<button class="validate-btn" data-validate="${m.id}" title="${L?"Save":"Valider"}" style="width:32px;height:44px;border:none;border-radius:8px;background:rgba(244,197,66,0.15);color:var(--gold);font-size:16px;cursor:pointer;flex-shrink:0;transition:background 0.15s" onmouseover="this.style.background='rgba(244,197,66,0.3)'" onmouseout="this.style.background='rgba(244,197,66,0.15)'">✓</button>` : ""}
         </div>
         <span class="team-name away">${teamName(m.away, state.lang)}</span>
         <span class="team-flag">${TEAMS[m.away]?.flag||"🏳️"}</span>
@@ -1674,9 +1684,13 @@ function bindLoginModal() {
 
 
 function bindEvents(groups, filteredMatches, playerList, L) {
-  // Tabs
+  // Tabs — flush pending Firebase data on tab switch
   document.querySelectorAll(".tab").forEach(btn => {
-    btn.addEventListener("click", () => { state.tab = btn.dataset.tab; render(); });
+    btn.addEventListener("click", () => {
+      state.tab = btn.dataset.tab;
+      renderPending = false;
+      render();
+    });
   });
 
   // Group filter
@@ -1684,31 +1698,46 @@ function bindEvents(groups, filteredMatches, playerList, L) {
     btn.addEventListener("click", () => { state.group = btn.dataset.group; render(); });
   });
 
-  // Prediction inputs — save on blur only to avoid focus loss
+  // Prediction inputs — only update local state, save on validate button
   const debounceTimers = {};
   document.querySelectorAll(".score-input[data-match]").forEach(input => {
     input.addEventListener("focus", () => { activeInputId = input.dataset.match + input.dataset.side; lastInteraction = Date.now(); });
+    input.addEventListener("blur", () => { activeInputId = null; lastInteraction = Date.now(); });
     input.addEventListener("input", () => {
       lastInteraction = Date.now();
-      // Update local state immediately, no Firebase call
       const matchId = input.dataset.match;
       const side = input.dataset.side;
       if (!state.predictions[state.player]) state.predictions[state.player] = {};
       if (!state.predictions[state.player][matchId]) state.predictions[state.player][matchId] = {h:"",a:""};
       state.predictions[state.player][matchId][side] = input.value;
     });
-    input.addEventListener("blur", () => {
-      lastInteraction = Date.now();
-      // Save to Firebase only when leaving the field
-      const matchId = input.dataset.match;
+    // Also save on Enter key
+    input.addEventListener("keydown", e => {
+      if (e.key === "Enter") {
+        const matchId = input.dataset.match;
+        const pred = (state.predictions[state.player]||{})[matchId] || {h:"",a:""};
+        savePrediction(matchId, pred.h, pred.a);
+        input.blur();
+        // Flash the validate button
+        const btn = document.querySelector(`[data-validate="${matchId}"]`);
+        if (btn) { btn.textContent = "✓"; btn.style.background = "rgba(0,229,160,0.3)"; setTimeout(() => { btn.style.background = "rgba(244,197,66,0.15)"; }, 800); }
+      }
+    });
+  });
+
+  // Validate buttons
+  document.querySelectorAll(".validate-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const matchId = btn.dataset.validate;
       const pred = (state.predictions[state.player]||{})[matchId] || {h:"",a:""};
       savePrediction(matchId, pred.h, pred.a);
-      activeInputId = null;
+      btn.textContent = "✓";
+      btn.style.background = "rgba(0,229,160,0.3)";
+      btn.style.color = "var(--green)";
       setTimeout(() => {
-        if (document.activeElement?.tagName !== "INPUT" && renderPending) {
-          renderPending = false; render();
-        }
-      }, 150);
+        btn.style.background = "rgba(244,197,66,0.15)";
+        btn.style.color = "var(--gold)";
+      }, 1000);
     });
   });
 
