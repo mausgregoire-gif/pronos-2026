@@ -12,9 +12,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getDatabase, ref, set, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-    // ══════════════════════════════════════════════
-    // 🔧 CONFIGURATION FIREBASE — remplace ces valeurs
-    // ══════════════════════════════════════════════
     const firebaseConfig = {
       apiKey: "AIzaSyDhPeows-xgqXrENo2QPvtEuC-mDHmZu8I",
       authDomain: "pronostics-cdm-2026-73b99.firebaseapp.com",
@@ -24,7 +21,6 @@
       messagingSenderId: "1034292280943",
       appId: "1:1034292280943:web:d66ff030e855d2bc1ad79a"
     };
-    // ══════════════════════════════════════════════
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
@@ -35,7 +31,10 @@
     window.__dbOnValue = onValue;
     window.__dbUpdate = update;
     window.__firebaseReady = true;
-    document.dispatchEvent(new Event("firebase-ready"));
+    // Use setTimeout to ensure main script has executed first
+    setTimeout(() => {
+      if (window.__onFirebaseReady) window.__onFirebaseReady();
+    }, 0);
   </script>
 
   <style>
@@ -1851,10 +1850,9 @@ function boot() {
     state.showLoginModal = false;
   }
 
+  window.__onFirebaseReady = initFirebase;
   if (window.__firebaseReady) {
     initFirebase();
-  } else {
-    document.addEventListener("firebase-ready", initFirebase);
   }
 
   // Timeout fallback if Firebase config not set
