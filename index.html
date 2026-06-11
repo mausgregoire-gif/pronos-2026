@@ -639,6 +639,9 @@ function initFirebase() {
       render();
     }
   });
+
+  // Initial render after Firebase connected
+  render();
 }
 
 async function savePrediction(matchId, h, a) {
