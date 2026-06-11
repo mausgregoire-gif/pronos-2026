@@ -12,6 +12,9 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getDatabase, ref, set, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
+    // ══════════════════════════════════════════════
+    // 🔧 CONFIGURATION FIREBASE — remplace ces valeurs
+    // ══════════════════════════════════════════════
     const firebaseConfig = {
       apiKey: "AIzaSyDhPeows-xgqXrENo2QPvtEuC-mDHmZu8I",
       authDomain: "pronostics-cdm-2026-73b99.firebaseapp.com",
@@ -21,6 +24,7 @@
       messagingSenderId: "1034292280943",
       appId: "1:1034292280943:web:d66ff030e855d2bc1ad79a"
     };
+    // ══════════════════════════════════════════════
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
@@ -31,10 +35,7 @@
     window.__dbOnValue = onValue;
     window.__dbUpdate = update;
     window.__firebaseReady = true;
-    // Use setTimeout to ensure main script has executed first
-    setTimeout(() => {
-      if (window.__onFirebaseReady) window.__onFirebaseReady();
-    }, 0);
+    document.dispatchEvent(new Event("firebase-ready"));
   </script>
 
   <style>
@@ -1225,41 +1226,7 @@ function renderKnockout(L) {
 // ══════════════════════════════════════════════════════════
 // FIREBASE
 // ══════════════════════════════════════════════════════════
-function initFirebase() {
-  db = window.__db;
-  dbRef = window.__dbRef;
-  dbSet = window.__dbSet;
-  dbGet = window.__dbGet;
-  dbOnValue = window.__dbOnValue;
-  dbUpdate = window.__dbUpdate;
 
-  // Listen to all data
-  dbOnValue(dbRef(db, "/"), snap => {
-    const data = snap.val() || {};
-    state.players = data.players || {};
-    state.actuals = data.actuals || {};
-    state.koPredictions = data.koPredictions || {};
-    state.koActuals = data.koActuals || {};
-    // Never overwrite own predictions from Firebase while on pronostics tab
-    if (state.tab !== "pronostics") {
-      state.predictions = data.predictions || {};
-    } else {
-      // Merge other players predictions but not own
-      const incoming = data.predictions || {};
-      Object.keys(incoming).forEach(pid => {
-        if (pid !== state.player) {
-          state.predictions[pid] = incoming[pid];
-        }
-      });
-    }
-    // Only re-render if NOT on pronostics tab, or if no input is focused
-    if (state.tab === "pronostics") {
-      renderPending = true; // defer until blur or tab change
-    } else {
-      render();
-    }
-  });
-}
 
 async function savePrediction(matchId, h, a) {
   if (!state.player) return;
@@ -1850,10 +1817,13 @@ function boot() {
     state.showLoginModal = false;
   }
 
-  window.__onFirebaseReady = initFirebase;
-  if (window.__firebaseReady) {
-    initFirebase();
-  }
+  // Poll for Firebase ready (works with both sync and async module loading)
+  const _fbWait = setInterval(() => {
+    if (window.__firebaseReady) {
+      clearInterval(_fbWait);
+      initFirebase();
+    }
+  }, 50);
 
   // Timeout fallback if Firebase config not set
   setTimeout(() => {
