@@ -809,6 +809,16 @@ async function deletePlayer(id) {
   render();
 }
 
+function flashBtn(btn) {
+  btn.textContent = "✓";
+  btn.style.background = "rgba(0,229,160,0.3)";
+  btn.style.color = "var(--green)";
+  setTimeout(() => {
+    btn.style.background = "rgba(244,197,66,0.15)";
+    btn.style.color = "var(--gold)";
+  }, 1000);
+}
+
 function flashSave() {
   state.saveIndicator = true;
   render();
@@ -982,21 +992,17 @@ function renderMatchCard(m, playerList, L) {
         <span class="team-name away">${teamName(m.away, state.lang)}</span>
         <span class="team-flag">${TEAMS[m.away]?.flag||"🏳️"}</span>
       </div>
-      ${state.isAdmin ? `
+      ${started ? `
         <div class="actual-row">
-          <span class="actual-label">${L?"Real score":"Score réel"}</span>
+          <span class="actual-label">⚽ ${L?"Real score":"Score réel"}</span>
           <input class="score-input" type="number" min="0" max="20"
             value="${actual.h}" data-actual="${m.id}" data-side="h" />
           <span class="score-sep">—</span>
           <input class="score-input" type="number" min="0" max="20"
             value="${actual.a}" data-actual="${m.id}" data-side="a" />
+          <button class="validate-actual-btn" data-validate-actual="${m.id}" style="width:32px;height:44px;border:none;border-radius:8px;background:rgba(244,197,66,0.15);color:var(--gold);font-size:16px;cursor:pointer;flex-shrink:0">✓</button>
         </div>
-      ` : (hasActual ? `
-        <div class="actual-row">
-          <span class="actual-label">⚽ ${L?"Result":"Résultat"}</span>
-          <span style="font-family:'DM Mono',monospace;font-weight:700;font-size:16px;color:var(--gold)">${actual.h} – ${actual.a}</span>
-        </div>
-      ` : "")}
+      ` : ""}
       ${othersHtml}
     </div>
   `;
@@ -1171,6 +1177,7 @@ function renderKoMatch(match, pred, L, isAdmin, koActual) {
       <input type="number" min="0" max="20" value="${pred?.a||""}" ${!canPredict?"disabled":""}
         data-ko="${match.id}" data-side="a"
         style="width:38px;height:38px;text-align:center;font-size:15px;font-weight:700;font-family:'DM Mono',monospace;background:${canPredict?"rgba(255,255,255,0.08)":"rgba(255,255,255,0.03)"};border:1.5px solid ${canPredict?"var(--border2)":"rgba(255,255,255,0.06)"};border-radius:7px;color:${canPredict?"#fff":"var(--text3)"};outline:none" />
+      ${canPredict ? `<button class="validate-ko-btn" data-validate-ko="${match.id}" style="width:30px;height:38px;border:none;border-radius:7px;background:rgba(244,197,66,0.15);color:var(--gold);font-size:14px;cursor:pointer;flex-shrink:0">✓</button>` : ""}
       <span style="flex:1;font-size:12px;font-weight:700;color:${away?"var(--text)":"var(--text3)"};text-align:right">${awayName}</span>
       <span style="font-size:16px">${awayFlag}</span>
     </div>
@@ -1182,6 +1189,7 @@ function renderKoMatch(match, pred, L, isAdmin, koActual) {
         <span style="color:var(--text3)">—</span>
         <input type="number" min="0" max="20" value="${koActual?.a||""}" data-ko-actual="${match.id}" data-side="a"
           style="width:38px;height:38px;text-align:center;font-size:15px;font-weight:700;font-family:'DM Mono',monospace;background:rgba(255,255,255,0.08);border:1.5px solid var(--border2);border-radius:7px;color:#fff;outline:none" />
+        <button class="validate-ko-actual-btn" data-validate-ko-actual="${match.id}" style="width:30px;height:38px;border:none;border-radius:7px;background:rgba(244,197,66,0.15);color:var(--gold);font-size:14px;cursor:pointer;flex-shrink:0">✓</button>
       </div>
     `:hasActual?`
       <div style="display:flex;align-items:center;gap:6px;padding-top:7px;margin-top:7px;border-top:1px solid var(--border)">
@@ -1357,6 +1365,16 @@ async function deletePlayer(id) {
   render();
 }
 
+function flashBtn(btn) {
+  btn.textContent = "✓";
+  btn.style.background = "rgba(0,229,160,0.3)";
+  btn.style.color = "var(--green)";
+  setTimeout(() => {
+    btn.style.background = "rgba(244,197,66,0.15)";
+    btn.style.color = "var(--gold)";
+  }, 1000);
+}
+
 function flashSave() {
   state.saveIndicator = true;
   render();
@@ -1530,21 +1548,17 @@ function renderMatchCard(m, playerList, L) {
         <span class="team-name away">${teamName(m.away, state.lang)}</span>
         <span class="team-flag">${TEAMS[m.away]?.flag||"🏳️"}</span>
       </div>
-      ${state.isAdmin ? `
+      ${started ? `
         <div class="actual-row">
-          <span class="actual-label">${L?"Real score":"Score réel"}</span>
+          <span class="actual-label">⚽ ${L?"Real score":"Score réel"}</span>
           <input class="score-input" type="number" min="0" max="20"
             value="${actual.h}" data-actual="${m.id}" data-side="h" />
           <span class="score-sep">—</span>
           <input class="score-input" type="number" min="0" max="20"
             value="${actual.a}" data-actual="${m.id}" data-side="a" />
+          <button class="validate-actual-btn" data-validate-actual="${m.id}" style="width:32px;height:44px;border:none;border-radius:8px;background:rgba(244,197,66,0.15);color:var(--gold);font-size:16px;cursor:pointer;flex-shrink:0">✓</button>
         </div>
-      ` : (hasActual ? `
-        <div class="actual-row">
-          <span class="actual-label">⚽ ${L?"Result":"Résultat"}</span>
-          <span style="font-family:'DM Mono',monospace;font-weight:700;font-size:16px;color:var(--gold)">${actual.h} – ${actual.a}</span>
-        </div>
-      ` : "")}
+      ` : ""}
       ${othersHtml}
     </div>
   `;
@@ -1729,19 +1743,43 @@ function bindEvents(groups, filteredMatches, playerList, L) {
     });
   });
 
-  // Validate buttons
+  // Validate buttons — group match predictions
   document.querySelectorAll(".validate-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       const matchId = btn.dataset.validate;
       const pred = (state.predictions[state.player]||{})[matchId] || {h:"",a:""};
       savePrediction(matchId, pred.h, pred.a);
-      btn.textContent = "✓";
-      btn.style.background = "rgba(0,229,160,0.3)";
-      btn.style.color = "var(--green)";
-      setTimeout(() => {
-        btn.style.background = "rgba(244,197,66,0.15)";
-        btn.style.color = "var(--gold)";
-      }, 1000);
+      flashBtn(btn);
+    });
+  });
+
+  // Validate buttons — admin actual scores (group matches)
+  document.querySelectorAll(".validate-actual-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const matchId = btn.dataset.validateActual;
+      const actual = state.actuals[matchId] || {h:"",a:""};
+      saveActual(matchId, actual.h, actual.a);
+      flashBtn(btn);
+    });
+  });
+
+  // Validate buttons — KO predictions
+  document.querySelectorAll(".validate-ko-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const matchId = btn.dataset.validateKo;
+      const pred = (state.koPredictions?.[state.player]||{})[matchId] || {h:"",a:""};
+      saveKoPrediction(matchId, pred.h, pred.a);
+      flashBtn(btn);
+    });
+  });
+
+  // Validate buttons — admin KO actual scores
+  document.querySelectorAll(".validate-ko-actual-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const matchId = btn.dataset.validateKoActual;
+      const actual = state.koActuals[matchId] || {h:"",a:""};
+      saveKoActualWithReset(matchId, actual.h, actual.a);
+      flashBtn(btn);
     });
   });
 
