@@ -822,14 +822,22 @@ function render() {
   const app = document.getElementById("app");
   const L = state.lang === "en";
 
-  // If we have a saved player ID but Firebase hasn't loaded yet, show loading
-  if (state.player && !state.players[state.player] && !state._predictionsLoaded) {
-    app.innerHTML = document.getElementById("loading")?.outerHTML || '<div style="text-align:center;padding:60px;color:#fff">⚽ Connexion...</div>';
+  // Show login if needed
+  if (state.showLoginModal) {
+    app.innerHTML = renderLoginModal();
+    bindLoginModal();
     return;
   }
 
-  // If player not found in Firebase after loading, show login
-  if (state.showLoginModal || (state.player && state._predictionsLoaded && !state.players[state.player])) {
+  // If Firebase not yet loaded, show loading screen
+  if (!state._predictionsLoaded) {
+    app.innerHTML = '<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px"><div style="font-size:48px">⚽</div><div style="color:#f4c542;font-size:14px">Connexion...</div></div>';
+    return;
+  }
+
+  // If saved player not found in Firebase, show login
+  if (state.player && !state.players[state.player]) {
+    state.player = null;
     state.showLoginModal = true;
     app.innerHTML = renderLoginModal();
     bindLoginModal();
@@ -1362,14 +1370,22 @@ function render() {
   const app = document.getElementById("app");
   const L = state.lang === "en";
 
-  // If we have a saved player ID but Firebase hasn't loaded yet, show loading
-  if (state.player && !state.players[state.player] && !state._predictionsLoaded) {
-    app.innerHTML = document.getElementById("loading")?.outerHTML || '<div style="text-align:center;padding:60px;color:#fff">⚽ Connexion...</div>';
+  // Show login if needed
+  if (state.showLoginModal) {
+    app.innerHTML = renderLoginModal();
+    bindLoginModal();
     return;
   }
 
-  // If player not found in Firebase after loading, show login
-  if (state.showLoginModal || (state.player && state._predictionsLoaded && !state.players[state.player])) {
+  // If Firebase not yet loaded, show loading screen
+  if (!state._predictionsLoaded) {
+    app.innerHTML = '<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px"><div style="font-size:48px">⚽</div><div style="color:#f4c542;font-size:14px">Connexion...</div></div>';
+    return;
+  }
+
+  // If saved player not found in Firebase, show login
+  if (state.player && !state.players[state.player]) {
+    state.player = null;
     state.showLoginModal = true;
     app.innerHTML = renderLoginModal();
     bindLoginModal();
