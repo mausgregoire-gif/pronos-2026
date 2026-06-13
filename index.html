@@ -622,6 +622,7 @@ function initFirebase() {
     state.koActuals = data.koActuals || {};
     // Always load predictions — first load takes everything, subsequent only merge others
     const _incoming = data.predictions || {};
+    const wasLoaded = state._predictionsLoaded;
     if (!state._predictionsLoaded) {
       state.predictions = _incoming;
       state._predictionsLoaded = true;
@@ -632,9 +633,11 @@ function initFirebase() {
         if (pid !== state.player) state.predictions[pid] = _incoming[pid];
       });
     }
-    // Only re-render if NOT on pronostics tab, or if no input is focused
-    if (state.tab === "pronostics") {
-      renderPending = true; // defer until blur or tab change
+    // Always render on first load, then only on non-pronostics tabs
+    if (!wasLoaded) {
+      render();
+    } else if (state.tab === "pronostics") {
+      renderPending = true;
     } else {
       render();
     }
