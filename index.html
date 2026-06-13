@@ -1094,22 +1094,43 @@ function renderLoginModal() {
 }
 
 function renderAdminModal(L) {
+  const playerList = Object.entries(state.players);
   return `
     <div class="modal-overlay" id="admin-overlay">
-      <div class="modal">
-        <h2>${state.isAdmin ? (L?"✓ Admin mode active":"✓ Mode admin actif") : (L?"Admin mode":"Mode administrateur")}</h2>
-        <p>${state.isAdmin
-          ? (L?"You can now enter real match scores in the Predictions tab.":"Vous pouvez maintenant saisir les scores réels dans l'onglet Pronostics.")
-          : (L?"Enter the password to set real scores.":"Entrez le mot de passe pour saisir les scores réels.")
-        }</p>
+      <div class="modal" style="max-width:420px;max-height:90vh;overflow-y:auto">
+        <h2>${state.isAdmin ? "⚙ Admin" : (L?"Admin mode":"Mode administrateur")}</h2>
+
         ${!state.isAdmin ? `
+          <p style="margin-bottom:16px">${L?"Enter the password to access admin.":"Entrez le mot de passe pour accéder à l'admin."}</p>
           <input class="input-field" type="password" id="admin-pass" placeholder="${L?"Password":"Mot de passe"}…" autofocus />
           <button class="btn btn-gold" id="admin-submit">${L?"Enter":"Entrer"}</button>
           <div style="font-size:11px;color:var(--text3);margin-top:10px;text-align:center">${L?"Hint: coupe + year":"Indice : coupe + année"}</div>
         ` : `
-          <button class="btn btn-danger" id="admin-logout">${L?"Logout":"Déconnexion admin"}</button>
+          <!-- Player management -->
+          <div style="margin-bottom:16px">
+            <div style="font-size:10px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px">${L?"Players":"Joueurs"} (${playerList.length})</div>
+            ${playerList.map(([id, p]) => `
+              <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+                <span style="flex:1;font-size:13px;font-weight:600;color:${id===state.player?"var(--gold)":"var(--text)"}">
+                  ${p.name} ${id===state.player?"(toi)":""}
+                </span>
+                <span style="font-size:11px;color:var(--text3)">${p.lang||"fr"}</span>
+                <input
+                  id="rename-${id}"
+                  placeholder="${L?"New name":"Nouveau prénom"}"
+                  maxlength="24"
+                  style="width:100px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:rgba(255,255,255,0.06);color:#fff;font-size:12px;outline:none"
+                />
+                <button class="rename-player-btn" data-pid="${id}" style="padding:4px 8px;border-radius:6px;border:none;background:rgba(244,197,66,0.15);color:var(--gold);font-size:11px;cursor:pointer">✏️</button>
+                ${id !== state.player ? `
+                  <button class="delete-player-btn" data-pid="${id}" data-name="${p.name}" style="padding:4px 8px;border-radius:6px;border:none;background:rgba(255,94,94,0.15);color:var(--red);font-size:11px;cursor:pointer">🗑</button>
+                ` : ""}
+              </div>
+            `).join("")}
+          </div>
+          <button class="btn btn-danger" id="admin-logout" style="margin-bottom:8px">${L?"Logout admin":"Déconnexion admin"}</button>
         `}
-        <button class="btn btn-ghost" id="admin-close" style="margin-top:8px">${L?"Cancel":"Annuler"}</button>
+        <button class="btn btn-ghost" id="admin-close">${L?"Close":"Fermer"}</button>
       </div>
     </div>
   `;
@@ -1650,22 +1671,43 @@ function renderLoginModal() {
 }
 
 function renderAdminModal(L) {
+  const playerList = Object.entries(state.players);
   return `
     <div class="modal-overlay" id="admin-overlay">
-      <div class="modal">
-        <h2>${state.isAdmin ? (L?"✓ Admin mode active":"✓ Mode admin actif") : (L?"Admin mode":"Mode administrateur")}</h2>
-        <p>${state.isAdmin
-          ? (L?"You can now enter real match scores in the Predictions tab.":"Vous pouvez maintenant saisir les scores réels dans l'onglet Pronostics.")
-          : (L?"Enter the password to set real scores.":"Entrez le mot de passe pour saisir les scores réels.")
-        }</p>
+      <div class="modal" style="max-width:420px;max-height:90vh;overflow-y:auto">
+        <h2>${state.isAdmin ? "⚙ Admin" : (L?"Admin mode":"Mode administrateur")}</h2>
+
         ${!state.isAdmin ? `
+          <p style="margin-bottom:16px">${L?"Enter the password to access admin.":"Entrez le mot de passe pour accéder à l'admin."}</p>
           <input class="input-field" type="password" id="admin-pass" placeholder="${L?"Password":"Mot de passe"}…" autofocus />
           <button class="btn btn-gold" id="admin-submit">${L?"Enter":"Entrer"}</button>
           <div style="font-size:11px;color:var(--text3);margin-top:10px;text-align:center">${L?"Hint: coupe + year":"Indice : coupe + année"}</div>
         ` : `
-          <button class="btn btn-danger" id="admin-logout">${L?"Logout":"Déconnexion admin"}</button>
+          <!-- Player management -->
+          <div style="margin-bottom:16px">
+            <div style="font-size:10px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px">${L?"Players":"Joueurs"} (${playerList.length})</div>
+            ${playerList.map(([id, p]) => `
+              <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+                <span style="flex:1;font-size:13px;font-weight:600;color:${id===state.player?"var(--gold)":"var(--text)"}">
+                  ${p.name} ${id===state.player?"(toi)":""}
+                </span>
+                <span style="font-size:11px;color:var(--text3)">${p.lang||"fr"}</span>
+                <input
+                  id="rename-${id}"
+                  placeholder="${L?"New name":"Nouveau prénom"}"
+                  maxlength="24"
+                  style="width:100px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:rgba(255,255,255,0.06);color:#fff;font-size:12px;outline:none"
+                />
+                <button class="rename-player-btn" data-pid="${id}" style="padding:4px 8px;border-radius:6px;border:none;background:rgba(244,197,66,0.15);color:var(--gold);font-size:11px;cursor:pointer">✏️</button>
+                ${id !== state.player ? `
+                  <button class="delete-player-btn" data-pid="${id}" data-name="${p.name}" style="padding:4px 8px;border-radius:6px;border:none;background:rgba(255,94,94,0.15);color:var(--red);font-size:11px;cursor:pointer">🗑</button>
+                ` : ""}
+              </div>
+            `).join("")}
+          </div>
+          <button class="btn btn-danger" id="admin-logout" style="margin-bottom:8px">${L?"Logout admin":"Déconnexion admin"}</button>
         `}
-        <button class="btn btn-ghost" id="admin-close" style="margin-top:8px">${L?"Cancel":"Annuler"}</button>
+        <button class="btn btn-ghost" id="admin-close">${L?"Close":"Fermer"}</button>
       </div>
     </div>
   `;
@@ -1869,6 +1911,35 @@ function bindEvents(groups, filteredMatches, playerList, L) {
   });
   document.getElementById("admin-logout")?.addEventListener("click", () => {
     state.isAdmin = false; state.showAdminModal = false; render();
+  });
+
+  // Rename player
+  document.querySelectorAll(".rename-player-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const pid = btn.dataset.pid;
+      const input = document.getElementById(`rename-${pid}`);
+      const newName = input?.value.trim();
+      if (!newName) { input?.focus(); return; }
+      // Check duplicate
+      const exists = Object.entries(state.players).find(([id, p]) => 
+        id !== pid && p.name.toLowerCase() === newName.toLowerCase()
+      );
+      if (exists) { alert(`"${newName}" est déjà pris.`); return; }
+      await dbUpdate(dbRef(db, `players/${pid}`), {name: newName});
+      input.value = "";
+      flashSave();
+    });
+  });
+
+  // Delete player
+  document.querySelectorAll(".delete-player-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const pid = btn.dataset.pid;
+      const name = btn.dataset.name;
+      if (!confirm(`Supprimer ${name} et tous ses pronostics ?`)) return;
+      await deletePlayer(pid);
+      flashSave();
+    });
   });
 
   // Logout / switch player
