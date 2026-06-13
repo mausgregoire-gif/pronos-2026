@@ -819,7 +819,15 @@ function render() {
   const app = document.getElementById("app");
   const L = state.lang === "en";
 
-  if (state.showLoginModal) {
+  // If we have a saved player ID but Firebase hasn't loaded yet, show loading
+  if (state.player && !state.players[state.player] && !state._predictionsLoaded) {
+    app.innerHTML = document.getElementById("loading")?.outerHTML || '<div style="text-align:center;padding:60px;color:#fff">⚽ Connexion...</div>';
+    return;
+  }
+
+  // If player not found in Firebase after loading, show login
+  if (state.showLoginModal || (state.player && state._predictionsLoaded && !state.players[state.player])) {
+    state.showLoginModal = true;
     app.innerHTML = renderLoginModal();
     bindLoginModal();
     return;
@@ -1351,7 +1359,15 @@ function render() {
   const app = document.getElementById("app");
   const L = state.lang === "en";
 
-  if (state.showLoginModal) {
+  // If we have a saved player ID but Firebase hasn't loaded yet, show loading
+  if (state.player && !state.players[state.player] && !state._predictionsLoaded) {
+    app.innerHTML = document.getElementById("loading")?.outerHTML || '<div style="text-align:center;padding:60px;color:#fff">⚽ Connexion...</div>';
+    return;
+  }
+
+  // If player not found in Firebase after loading, show login
+  if (state.showLoginModal || (state.player && state._predictionsLoaded && !state.players[state.player])) {
+    state.showLoginModal = true;
     app.innerHTML = renderLoginModal();
     bindLoginModal();
     return;
