@@ -1122,6 +1122,7 @@ function renderAdminModal(L) {
                   style="width:100px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:rgba(255,255,255,0.06);color:#fff;font-size:12px;outline:none"
                 />
                 <button class="rename-player-btn" data-pid="${id}" style="padding:4px 8px;border-radius:6px;border:none;background:rgba(244,197,66,0.15);color:var(--gold);font-size:11px;cursor:pointer">✏️</button>
+                <button class="reset-pass-btn" data-pid="${id}" data-name="${p.name}" style="padding:4px 8px;border-radius:6px;border:none;background:rgba(0,229,160,0.15);color:var(--green);font-size:11px;cursor:pointer">🔑</button>
                 ${id !== state.player ? `
                   <button class="delete-player-btn" data-pid="${id}" data-name="${p.name}" style="padding:4px 8px;border-radius:6px;border:none;background:rgba(255,94,94,0.15);color:var(--red);font-size:11px;cursor:pointer">🗑</button>
                 ` : ""}
@@ -1699,6 +1700,7 @@ function renderAdminModal(L) {
                   style="width:100px;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:rgba(255,255,255,0.06);color:#fff;font-size:12px;outline:none"
                 />
                 <button class="rename-player-btn" data-pid="${id}" style="padding:4px 8px;border-radius:6px;border:none;background:rgba(244,197,66,0.15);color:var(--gold);font-size:11px;cursor:pointer">✏️</button>
+                <button class="reset-pass-btn" data-pid="${id}" data-name="${p.name}" style="padding:4px 8px;border-radius:6px;border:none;background:rgba(0,229,160,0.15);color:var(--green);font-size:11px;cursor:pointer">🔑</button>
                 ${id !== state.player ? `
                   <button class="delete-player-btn" data-pid="${id}" data-name="${p.name}" style="padding:4px 8px;border-radius:6px;border:none;background:rgba(255,94,94,0.15);color:var(--red);font-size:11px;cursor:pointer">🗑</button>
                 ` : ""}
@@ -1911,6 +1913,19 @@ function bindEvents(groups, filteredMatches, playerList, L) {
   });
   document.getElementById("admin-logout")?.addEventListener("click", () => {
     state.isAdmin = false; state.showAdminModal = false; render();
+  });
+
+  // Reset password
+  document.querySelectorAll(".reset-pass-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const pid = btn.dataset.pid;
+      const name = btn.dataset.name;
+      const newPass = prompt(`Nouveau mot de passe pour ${name} :`);
+      if (!newPass || !newPass.trim()) return;
+      const hash = await hashPassword(newPass.trim());
+      await dbUpdate(dbRef(db, `players/${pid}`), {hash});
+      alert(`✓ Mot de passe de ${name} réinitialisé.`);
+    });
   });
 
   // Rename player
