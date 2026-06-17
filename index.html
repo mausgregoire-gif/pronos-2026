@@ -463,11 +463,17 @@ function getBestThirds(scores) {
 }
 
 // Construit le bracket R32 à partir des scores donnés (pronostics du joueur)
-function buildR32fromScores(scores) {
+function buildR32fromScores(scores, provisional=false) {
   const get = (g, pos) => {
     const s = calcGroupStandings(g, scores);
     const allPlayed = MATCHES.filter(m=>m.group===g)
       .every(m => { const a=scores[m.id]; return a&&a.h!==""&&a.a!==""; });
+    if (provisional) {
+      // Show provisional if at least one match played
+      const anyPlayed = MATCHES.filter(m=>m.group===g)
+        .some(m => { const a=scores[m.id]; return a&&a.h!==""&&a.a!==""; });
+      return anyPlayed ? (s[pos]?.team || null) : null;
+    }
     return allPlayed ? (s[pos]?.team || null) : null;
   };
   const t3 = getBestThirds(scores);
@@ -1850,7 +1856,51 @@ function renderGroupes(L) {
     </div>
   `;
 
-  return legend + thirdsHtml + groupsHtml;
+  // Real R32 bracket based on actual scores (provisional)
+  const realR32 = buildR32fromScores(state.actuals, true);
+
+  // Track which groups are fully complete
+  const completeGroups = new Set(GROUPS_LIST.filter(g => {
+    return MATCHES.filter(m=>m.group===g)
+      .every(m => { const a=state.actuals[m.id]; return a&&a.h!==""&&a.a!==""; });
+  }));
+
+  const realBracketHtml = `
+    <div style="background:var(--bg2);border:1px solid rgba(0,229,160,0.3);border-radius:12px;padding:12px;margin-bottom:10px">
+      <div style="font-size:11px;font-weight:800;color:var(--green);letter-spacing:2px;margin-bottom:6px">
+        ⚔️ ${L?"REAL BRACKET — ROUND OF 32":"BRACKET RÉEL — 1/16 DE FINALE"}
+      </div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:10px">
+        ⏳ = ${L?"provisional (group not finished)":"provisoire (groupe non terminé)"}
+      </div>
+      ${realR32.map((m, i) => {
+        const home = m.home ? TEAMS[m.home] : null;
+        const away = m.away ? TEAMS[m.away] : null;
+        const tbd = `<span style="color:var(--text3);font-style:italic">${L?"TBD":"À déterm."}</span>`;
+
+        // Check if teams come from complete groups
+        const homeGroup = m.home ? GROUPS_LIST.find(g => GROUP_TEAMS[g].includes(m.home)) : null;
+        const awayGroup = m.away ? GROUPS_LIST.find(g => GROUP_TEAMS[g].includes(m.away)) : null;
+        const homeProvisional = homeGroup && !completeGroups.has(homeGroup);
+        const awayProvisional = awayGroup && !completeGroups.has(awayGroup);
+
+        return `<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:10px;color:var(--text3);width:20px">${i+1}</span>
+          <span style="font-size:14px">${home?.flag||"❓"}</span>
+          <span style="flex:1;font-size:12px;font-weight:${home?"600":"400"};color:${home?"var(--text)":"var(--text3)"}">
+            ${home?(L?home.en:home.name):tbd}${homeProvisional?" ⏳":""}
+          </span>
+          <span style="font-size:10px;color:var(--text3)">vs</span>
+          <span style="flex:1;font-size:12px;font-weight:${away?"600":"400"};color:${away?"var(--text)":"var(--text3)"};text-align:right">
+            ${awayProvisional?"⏳ ":""}${away?(L?away.en:away.name):tbd}
+          </span>
+          <span style="font-size:14px">${away?.flag||"❓"}</span>
+        </div>`;
+      }).join("")}
+    </div>
+  `;
+
+  return legend + realBracketHtml + thirdsHtml + groupsHtml;
 }
 
 function bindEvents(groups, filteredMatches, playerList, L) {
