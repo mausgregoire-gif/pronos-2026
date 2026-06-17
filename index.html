@@ -890,6 +890,9 @@ function render() {
       <button class="tab ${state.tab==="classement"?"active":""}" data-tab="classement" style="font-size:11px;padding:9px 4px">
         🏆 ${L?"Ranking":"Classmt"}
       </button>
+      <button class="tab ${state.tab==="groupes"?"active":""}" data-tab="groupes" style="font-size:11px;padding:9px 4px">
+        📊 ${L?"Groups":"Groupes"}
+      </button>
       <button class="tab ${state.tab==="knockout"?"active":""}" data-tab="knockout" style="font-size:11px;padding:9px 4px">
         ⚔️ ${L?"Knockout":"Phases"}
       </button>
@@ -897,6 +900,7 @@ function render() {
 
     ${state.tab === "pronostics" ? renderPronostics(filteredMatches, groups, playerList, L) :
       state.tab === "classement" ? renderClassement(playerList, L) :
+      state.tab === "groupes" ? renderGroupes(L) :
       renderKnockout(L)}
 
     ${state.showAdminModal ? renderAdminModal(L) : ""}
@@ -1468,6 +1472,9 @@ function render() {
       <button class="tab ${state.tab==="classement"?"active":""}" data-tab="classement" style="font-size:11px;padding:9px 4px">
         🏆 ${L?"Ranking":"Classmt"}
       </button>
+      <button class="tab ${state.tab==="groupes"?"active":""}" data-tab="groupes" style="font-size:11px;padding:9px 4px">
+        📊 ${L?"Groups":"Groupes"}
+      </button>
       <button class="tab ${state.tab==="knockout"?"active":""}" data-tab="knockout" style="font-size:11px;padding:9px 4px">
         ⚔️ ${L?"Knockout":"Phases"}
       </button>
@@ -1475,6 +1482,7 @@ function render() {
 
     ${state.tab === "pronostics" ? renderPronostics(filteredMatches, groups, playerList, L) :
       state.tab === "classement" ? renderClassement(playerList, L) :
+      state.tab === "groupes" ? renderGroupes(L) :
       renderKnockout(L)}
 
     ${state.showAdminModal ? renderAdminModal(L) : ""}
@@ -1744,6 +1752,106 @@ function bindLoginModal() {
   nameInput?.focus();
 }
 
+
+function renderGroupes(L) {
+  const allThirds = [];
+
+  const groupBlocks = GROUPS_LIST.map(g => {
+    const standings = calcGroupStandings(g, state.actuals);
+    const groupMatches = MATCHES.filter(m => m.group === g);
+    const playedCount = groupMatches.filter(m => {
+      const a = state.actuals[m.id];
+      return a && a.h !== "" && a.a !== "";
+    }).length;
+    const total = groupMatches.length;
+    const complete = playedCount === total;
+
+    if (standings[2]) allThirds.push({...standings[2], group: g, complete});
+
+    return {g, standings, playedCount, total, complete};
+  });
+
+  // Best 8 thirds
+  const best8 = [...allThirds]
+    .sort((a,b) => b.pts-a.pts || b.gd-a.gd || b.gf-a.gf || b.w-a.w)
+    .slice(0, 8);
+  const best8ids = new Set(best8.map(t => t.group + t.team));
+
+  const renderStanding = (entry, rank, g, complete) => {
+    const team = TEAMS[entry.team];
+    const isQ = rank <= 2 && complete;
+    const is3rd = rank === 3;
+    const inBest8 = best8ids.has(g + entry.team);
+    const isElim = complete && rank > 2 && !inBest8;
+    const isQ3 = is3rd && inBest8 && complete;
+
+    let bg = "transparent";
+    let borderLeft = "3px solid transparent";
+    if (isQ) borderLeft = "3px solid var(--green)";
+    else if (isQ3) borderLeft = "3px solid #ffd166";
+    else if (isElim) borderLeft = "3px solid var(--red)";
+
+    return `<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:${bg};border-left:${borderLeft};margin-left:-10px;padding-left:7px">
+      <span style="font-size:12px;color:var(--text3);width:14px">${rank}</span>
+      <span style="font-size:16px">${team?.flag||"🏳️"}</span>
+      <span style="flex:1;font-size:12px;font-weight:${isQ||isQ3?"700":"500"};color:${isElim?"var(--text3)":"var(--text)"}">${L?team?.en:team?.name}</span>
+      <span style="font-size:11px;font-weight:700;color:var(--text2);width:20px;text-align:center">${entry.pts}</span>
+      <span style="font-size:10px;color:var(--text3);width:16px;text-align:center">${entry.played}</span>
+      <span style="font-size:10px;color:var(--text3);width:24px;text-align:center">${entry.gd>0?"+":""}${entry.gd}</span>
+      <span style="font-size:10px;color:var(--text3);width:20px;text-align:center">${entry.gf}</span>
+    </div>`;
+  };
+
+  const groupsHtml = groupBlocks.map(({g, standings, playedCount, total, complete}) => `
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:2px">${L?"GROUP":"GROUPE"} ${g}</span>
+        <span style="font-size:10px;color:var(--text3)">${playedCount}/${total} ${L?"played":"joués"}</span>
+      </div>
+      <div style="display:flex;gap:4px;font-size:9px;color:var(--text3);padding:0 10px 4px 31px;letter-spacing:1px">
+        <span style="flex:1"></span>
+        <span style="width:20px;text-align:center">Pts</span>
+        <span style="width:16px;text-align:center">J</span>
+        <span style="width:24px;text-align:center">Diff</span>
+        <span style="width:20px;text-align:center">Bp</span>
+      </div>
+      ${standings.map((e,i) => renderStanding(e, i+1, g, complete)).join("")}
+    </div>
+  `).join("");
+
+  // Best 8 thirds section
+  const thirdsHtml = `
+    <div style="background:var(--bg2);border:1px solid rgba(255,209,102,0.3);border-radius:12px;padding:12px;margin-bottom:10px">
+      <div style="font-size:11px;font-weight:800;color:#ffd166;letter-spacing:2px;margin-bottom:8px">
+        🏅 ${L?"BEST 8 THIRD-PLACE TEAMS":"8 MEILLEURS 3ÈMES"}
+      </div>
+      ${best8.length === 0 ? `<div style="color:var(--text3);font-size:12px">${L?"No matches played yet":"Aucun match joué"}</div>` :
+        best8.map((e, i) => {
+          const team = TEAMS[e.team];
+          return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">
+            <span style="font-size:12px;color:var(--text3);width:16px">${i+1}</span>
+            <span style="font-size:15px">${team?.flag||"🏳️"}</span>
+            <span style="flex:1;font-size:12px;font-weight:600">${L?team?.en:team?.name}</span>
+            <span style="font-size:10px;color:var(--text3)">Gr. ${e.group}</span>
+            <span style="font-size:11px;font-weight:700;color:#ffd166">${e.pts} pts</span>
+            <span style="font-size:10px;color:var(--text3)">${e.gd>0?"+":""}${e.gd} / ${e.gf}bp</span>
+          </div>`;
+        }).join("")
+      }
+    </div>
+  `;
+
+  // Legend
+  const legend = `
+    <div style="display:flex;gap:16px;font-size:11px;color:var(--text2);padding:8px 0;flex-wrap:wrap">
+      <span><span style="color:var(--green)">▌</span> ${L?"Qualified (1st/2nd)":"Qualifié (1er/2e)"}</span>
+      <span><span style="color:#ffd166">▌</span> ${L?"Best 3rd":"Meilleur 3e"}</span>
+      <span><span style="color:var(--red)">▌</span> ${L?"Eliminated":"Éliminé"}</span>
+    </div>
+  `;
+
+  return legend + thirdsHtml + groupsHtml;
+}
 
 function bindEvents(groups, filteredMatches, playerList, L) {
   // Tabs — flush pending Firebase data on tab switch
