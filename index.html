@@ -303,6 +303,18 @@
 let activeInputId = null;
 let renderPending = false;
 let lastInteraction = 0;
+let flushTimer = null;
+
+// Schedule a render once the user stops interacting (debounced)
+function scheduleFlush() {
+  clearTimeout(flushTimer);
+  flushTimer = setTimeout(() => {
+    if (document.activeElement?.tagName !== "INPUT" && renderPending) {
+      renderPending = false;
+      render();
+    }
+  }, 3200);
+}
 
 // ══════════════════════════════════════════════════════════
 // DATA
@@ -680,11 +692,14 @@ function initFirebase() {
         if (pid !== state.player) state.predictions[pid] = _incoming[pid];
       });
     }
-    // Always render on first load, then only on non-pronostics tabs
+    // Render immediately on first load. Afterwards, NEVER render while the
+    // user is actively interacting (typing, just focused/blurred an input) —
+    // wait for the interaction window to pass, or for a tab switch to flush it.
     if (!wasLoaded) {
       render();
-    } else if (state.tab === "pronostics") {
+    } else if (Date.now() - lastInteraction < 3000 || document.activeElement?.tagName === "INPUT") {
       renderPending = true;
+      scheduleFlush();
     } else {
       render();
     }
@@ -2223,8 +2238,9 @@ function bindEvents(groups, filteredMatches, playerList, L) {
   // KO prediction inputs
   const koTimers = {};
   document.querySelectorAll("input[data-ko]").forEach(input => {
-    input.addEventListener("focus", () => { activeInputId = "ko_"+input.dataset.ko+input.dataset.side; });
+    input.addEventListener("focus", () => { activeInputId = "ko_"+input.dataset.ko+input.dataset.side; lastInteraction = Date.now(); });
     input.addEventListener("input", () => {
+      lastInteraction = Date.now();
       const matchId = input.dataset.ko;
       const side = input.dataset.side;
       if (!state.koPredictions) state.koPredictions = {};
@@ -2233,6 +2249,7 @@ function bindEvents(groups, filteredMatches, playerList, L) {
       state.koPredictions[state.player][matchId][side] = input.value;
     });
     input.addEventListener("blur", () => {
+      lastInteraction = Date.now();
       const matchId = input.dataset.ko;
       const pred = (state.koPredictions?.[state.player]||{})[matchId] || {h:"",a:""};
       saveKoPrediction(matchId, pred.h, pred.a);
