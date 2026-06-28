@@ -410,11 +410,61 @@ const MATCHES = [
 ];
 
 // ══════════════════════════════════════════════════════════
+// PHASES FINALES — matchs fixes (groupes terminés, appariements officiels FIFA)
+// ══════════════════════════════════════════════════════════
+const KO_MATCHES = {
+  r32: [
+    {id:"R32_73",matchNum:73,home:"RSA",away:"CAN",date:"2026-06-28",time:"19:00",venue:"SoFi Stadium, Los Angeles"},
+    {id:"R32_76",matchNum:76,home:"BRA",away:"JPN",date:"2026-06-29",time:"17:00",venue:"NRG Stadium, Houston"},
+    {id:"R32_74",matchNum:74,home:"GER",away:"PAR",date:"2026-06-29",time:"20:30",venue:"Gillette Stadium, Boston"},
+    {id:"R32_75",matchNum:75,home:"NED",away:"MAR",date:"2026-06-30",time:"01:00",venue:"Stade BBVA, Monterrey"},
+    {id:"R32_78",matchNum:78,home:"CIV",away:"NOR",date:"2026-06-30",time:"17:00",venue:"AT&T Stadium, Arlington"},
+    {id:"R32_77",matchNum:77,home:"FRA",away:"SWE",date:"2026-06-30",time:"21:00",venue:"MetLife Stadium, New York"},
+    {id:"R32_79",matchNum:79,home:"MEX",away:"ECU",date:"2026-07-01",time:"01:00",venue:"Stade Azteca, Mexico"},
+    {id:"R32_80",matchNum:80,home:"ENG",away:"COD",date:"2026-07-01",time:"16:00",venue:"Mercedes-Benz Stadium, Atlanta"},
+    {id:"R32_82",matchNum:82,home:"BEL",away:"SEN",date:"2026-07-01",time:"20:00",venue:"Lumen Field, Seattle"},
+    {id:"R32_81",matchNum:81,home:"USA",away:"BIH",date:"2026-07-02",time:"00:00",venue:"Levi's Stadium, Santa Clara"},
+    {id:"R32_84",matchNum:84,home:"ESP",away:"AUT",date:"2026-07-02",time:"19:00",venue:"SoFi Stadium, Los Angeles"},
+    {id:"R32_83",matchNum:83,home:"POR",away:"CRO",date:"2026-07-02",time:"23:00",venue:"BMO Field, Toronto"},
+    {id:"R32_85",matchNum:85,home:"SUI",away:"ALG",date:"2026-07-03",time:"03:00",venue:"BC Place, Vancouver"},
+    {id:"R32_88",matchNum:88,home:"AUS",away:"EGY",date:"2026-07-03",time:"18:00",venue:"AT&T Stadium, Arlington"},
+    {id:"R32_86",matchNum:86,home:"ARG",away:"CPV",date:"2026-07-03",time:"22:00",venue:"Hard Rock Stadium, Miami"},
+    {id:"R32_87",matchNum:87,home:"COL",away:"GHA",date:"2026-07-04",time:"01:30",venue:"Arrowhead Stadium, Kansas City"},
+  ],
+  r16: [
+    {id:"R16_90",matchNum:90,from:["R32_73","R32_75"],date:"2026-07-04",time:"17:00",venue:"NRG Stadium, Houston"},
+    {id:"R16_89",matchNum:89,from:["R32_74","R32_77"],date:"2026-07-04",time:"21:00",venue:"Lincoln Financial Field, Philadelphia"},
+    {id:"R16_91",matchNum:91,from:["R32_76","R32_78"],date:"2026-07-05",time:"20:00",venue:"MetLife Stadium, New York"},
+    {id:"R16_92",matchNum:92,from:["R32_79","R32_80"],date:"2026-07-06",time:"00:00",venue:"Stade Azteca, Mexico"},
+    {id:"R16_93",matchNum:93,from:["R32_83","R32_84"],date:"2026-07-06",time:"19:00",venue:"AT&T Stadium, Arlington"},
+    {id:"R16_94",matchNum:94,from:["R32_81","R32_82"],date:"2026-07-07",time:"00:00",venue:"Lumen Field, Seattle"},
+    {id:"R16_95",matchNum:95,from:["R32_86","R32_88"],date:"2026-07-07",time:"16:00",venue:"Mercedes-Benz Stadium, Atlanta"},
+    {id:"R16_96",matchNum:96,from:["R32_85","R32_87"],date:"2026-07-07",time:"20:00",venue:"BC Place, Vancouver"},
+  ],
+  qf: [
+    {id:"QF_97",matchNum:97,from:["R16_89","R16_90"],date:"2026-07-09",time:"20:00",venue:"Gillette Stadium, Boston"},
+    {id:"QF_98",matchNum:98,from:["R16_93","R16_94"],date:"2026-07-10",time:"19:00",venue:"SoFi Stadium, Los Angeles"},
+    {id:"QF_99",matchNum:99,from:["R16_91","R16_92"],date:"2026-07-11",time:"21:00",venue:"Hard Rock Stadium, Miami"},
+    {id:"QF_100",matchNum:100,from:["R16_95","R16_96"],date:"2026-07-12",time:"01:00",venue:"Arrowhead Stadium, Kansas City"},
+  ],
+  sf: [
+    {id:"SF_101",matchNum:101,from:["QF_97","QF_98"],date:"2026-07-14",time:"19:00",venue:"AT&T Stadium, Arlington"},
+    {id:"SF_102",matchNum:102,from:["QF_99","QF_100"],date:"2026-07-15",time:"19:00",venue:"Mercedes-Benz Stadium, Atlanta"},
+  ],
+  third: [
+    {id:"THIRD_103",matchNum:103,from:["SF_101","SF_102"],loser:true,date:"2026-07-18",time:"21:00",venue:"Hard Rock Stadium, Miami"},
+  ],
+  final: [
+    {id:"F_104",matchNum:104,from:["SF_101","SF_102"],date:"2026-07-19",time:"19:00",venue:"MetLife Stadium, New York"},
+  ],
+};
+
+// ══════════════════════════════════════════════════════════
 // HELPERS
 // ══════════════════════════════════════════════════════════
 
 // ══════════════════════════════════════════════════════════
-// KNOCKOUT ENGINE — basé sur les pronostics du joueur
+// KNOCKOUT ENGINE — phases finales avec matchs FIXES (groupes terminés)
 // ══════════════════════════════════════════════════════════
 
 const GROUPS_LIST = ["A","B","C","D","E","F","G","H","I","J","K","L"];
@@ -428,7 +478,7 @@ const GROUP_TEAMS = {
   K:["POR","COD","COL","UZB"], L:["ENG","CRO","GHA","PAN"]
 };
 
-// Calcule le classement d'un groupe à partir d'un set de scores (pronostics ou réels)
+// Calcule le classement d'un groupe à partir des scores réels
 function calcGroupStandings(group, scores) {
   const groupTeams = GROUP_TEAMS[group];
   const stats = {};
@@ -453,7 +503,6 @@ function calcGroupStandings(group, scores) {
     .sort((a,b) => b.pts-a.pts || b.gd-a.gd || b.gf-a.gf || b.w-a.w);
 }
 
-// Meilleurs 3èmes
 function getBestThirds(scores) {
   return GROUPS_LIST
     .map(g => { const s=calcGroupStandings(g,scores); return s[2]?{...s[2],group:g}:null; })
@@ -462,152 +511,81 @@ function getBestThirds(scores) {
     .slice(0,8);
 }
 
-// Construit le bracket R32 à partir des scores donnés (pronostics du joueur)
-// Utilise les VRAIS appariements officiels FIFA 2026 (M73-M88)
-function buildR32fromScores(scores, provisional=false) {
-  const get = (g, pos) => {
-    const s = calcGroupStandings(g, scores);
-    const allPlayed = MATCHES.filter(m=>m.group===g)
-      .every(m => { const a=scores[m.id]; return a&&a.h!==""&&a.a!==""; });
-    if (provisional) {
-      const anyPlayed = MATCHES.filter(m=>m.group===g)
-        .some(m => { const a=scores[m.id]; return a&&a.h!==""&&a.a!==""; });
-      return anyPlayed ? (s[pos]?.team || null) : null;
-    }
-    return allPlayed ? (s[pos]?.team || null) : null;
-  };
-
-  // 1st and 2nd of each group
-  const first = {}, second = {};
-  GROUPS_LIST.forEach(g => { first[g] = get(g,0); second[g] = get(g,1); });
-
-  const t8 = getBestThirds(scores); // ordered list of best 8 thirds with .group
-  // Map: which original group each "best third slot" comes from (by rank 1-8)
-  const thirdByRank = {};
-  t8.forEach((t, i) => { thirdByRank[i+1] = t.team; });
-  // Helper to get a third-place team IF it qualified, by checking group membership
-  // FIFA assigns thirds dynamically based on which combo of groups produced 8 thirds.
-  // We use rank order (1st best third, 2nd best third...) matching the standard placeholder slots:
-  // 3A/B/C/D/F, 3C/D/F/G/H, 3C/E/F/H/I, 3E/H/I/J/K, 3B/E/F/I/J, 3A/E/H/I/J, 3E/F/G/I/J, 3D/E/I/J/L
-  // These slots get filled in order by whichever qualifying third matches the group pool.
-  const thirdPools = [
-    ["A","B","C","D","F"],
-    ["C","D","F","G","H"],
-    ["C","E","F","H","I"],
-    ["E","H","I","J","K"],
-    ["B","E","F","I","J"],
-    ["A","E","H","I","J"],
-    ["E","F","G","I","J"],
-    ["D","E","I","J","L"],
-  ];
-  // Assign each qualified third (sorted best to worst) to the first available matching pool slot
-  const usedThirds = new Set();
-  const poolAssignment = {};
-  for (const t of t8) {
-    for (let i = 0; i < thirdPools.length; i++) {
-      if (poolAssignment[i] !== undefined) continue;
-      if (thirdPools[i].includes(t.group)) {
-        poolAssignment[i] = t.team;
-        usedThirds.add(t.team);
-        break;
-      }
-    }
-  }
-  const poolTeam = (idx) => poolAssignment[idx] ?? null;
-
-  // Official R32 (M73-M88), using real team names directly when both teams are known
-  return [
-    {id:"R32_1",  matchNum:73, home: second["A"], away: second["B"]},
-    {id:"R32_2",  matchNum:74, home: first["E"],  away: poolTeam(0)},
-    {id:"R32_3",  matchNum:75, home: first["F"],  away: second["C"]},
-    {id:"R32_4",  matchNum:76, home: first["C"],  away: second["F"]},
-    {id:"R32_5",  matchNum:77, home: first["I"],  away: poolTeam(1)},
-    {id:"R32_6",  matchNum:78, home: second["E"], away: second["I"]},
-    {id:"R32_7",  matchNum:79, home: first["A"],  away: poolTeam(2)},
-    {id:"R32_8",  matchNum:80, home: first["L"],  away: poolTeam(3)},
-    {id:"R32_9",  matchNum:81, home: first["D"],  away: poolTeam(4)},
-    {id:"R32_10", matchNum:82, home: first["G"],  away: poolTeam(5)},
-    {id:"R32_11", matchNum:83, home: second["K"], away: second["L"]},
-    {id:"R32_12", matchNum:84, home: first["H"],  away: second["J"]},
-    {id:"R32_13", matchNum:85, home: first["B"],  away: poolTeam(6)},
-    {id:"R32_14", matchNum:86, home: first["J"],  away: second["H"]},
-    {id:"R32_15", matchNum:87, home: first["K"],  away: poolTeam(7)},
-    {id:"R32_16", matchNum:88, home: second["D"], away: second["G"]},
-  ];
-}
-
-// Avance le bracket : à partir des pronostics KO du joueur, déduit les équipes suivantes
-function getKoWinner(matchId, koScores, r32) {
+// Détermine le vainqueur d'un match KO (score + tirs au but si égalité)
+function getKoWinnerFixed(matchId, koScores) {
   const pred = koScores[matchId];
   if (!pred || pred.h === "" || pred.a === "") return null;
   const h = parseInt(pred.h), a = parseInt(pred.a);
   if (isNaN(h) || isNaN(a)) return null;
-  const match = r32.find(m => m.id === matchId);
+  // Find the match definition to know home/away teams
+  const allKo = [...KO_MATCHES.r32, ...KO_MATCHES.r16, ...KO_MATCHES.qf, ...KO_MATCHES.sf, ...KO_MATCHES.third, ...KO_MATCHES.final];
+  const match = allKo.find(m => m.id === matchId);
   if (!match) return null;
+  const homeTeam = resolveKoTeam(match, "home", koScores);
+  const awayTeam = resolveKoTeam(match, "away", koScores);
   if (h === a) {
-    // Match nul après prolongations -> tirs au but
-    if (pred.pen === "home") return match.home;
-    if (pred.pen === "away") return match.away;
-    return null; // pas encore désigné de vainqueur aux T.A.B.
+    if (pred.pen === "home") return homeTeam;
+    if (pred.pen === "away") return awayTeam;
+    return null;
   }
-  return h > a ? match.home : match.away;
+  return h > a ? homeTeam : awayTeam;
 }
 
-function buildFullBracket(playerGroupPreds, playerKoPreds) {
-  // R32 — appariements officiels FIFA (M73-M88)
-  const r32 = buildR32fromScores(playerGroupPreds);
+function getKoLoserFixed(matchId, koScores) {
+  const pred = koScores[matchId];
+  if (!pred || pred.h === "" || pred.a === "") return null;
+  const h = parseInt(pred.h), a = parseInt(pred.a);
+  if (isNaN(h) || isNaN(a)) return null;
+  const allKo = [...KO_MATCHES.r32, ...KO_MATCHES.r16, ...KO_MATCHES.qf, ...KO_MATCHES.sf, ...KO_MATCHES.third, ...KO_MATCHES.final];
+  const match = allKo.find(m => m.id === matchId);
+  if (!match) return null;
+  const homeTeam = resolveKoTeam(match, "home", koScores);
+  const awayTeam = resolveKoTeam(match, "away", koScores);
+  if (h === a) {
+    if (pred.pen === "home") return awayTeam;
+    if (pred.pen === "away") return homeTeam;
+    return null;
+  }
+  return h > a ? awayTeam : homeTeam;
+}
 
-  // R16 — huitièmes de finale (M89-M96), appariements officiels
-  const r16 = [
-    {id:"R16_1", matchNum:90, home: getKoWinner("R32_1",  playerKoPreds, r32), away: getKoWinner("R32_3",  playerKoPreds, r32)},
-    {id:"R16_2", matchNum:89, home: getKoWinner("R32_2",  playerKoPreds, r32), away: getKoWinner("R32_5",  playerKoPreds, r32)},
-    {id:"R16_3", matchNum:91, home: getKoWinner("R32_4",  playerKoPreds, r32), away: getKoWinner("R32_6",  playerKoPreds, r32)},
-    {id:"R16_4", matchNum:92, home: getKoWinner("R32_7",  playerKoPreds, r32), away: getKoWinner("R32_8",  playerKoPreds, r32)},
-    {id:"R16_5", matchNum:93, home: getKoWinner("R32_11", playerKoPreds, r32), away: getKoWinner("R32_12", playerKoPreds, r32)},
-    {id:"R16_6", matchNum:94, home: getKoWinner("R32_9",  playerKoPreds, r32), away: getKoWinner("R32_10", playerKoPreds, r32)},
-    {id:"R16_7", matchNum:95, home: getKoWinner("R32_14", playerKoPreds, r32), away: getKoWinner("R32_16", playerKoPreds, r32)},
-    {id:"R16_8", matchNum:96, home: getKoWinner("R32_13", playerKoPreds, r32), away: getKoWinner("R32_15", playerKoPreds, r32)},
-  ];
-
-  // QF — quarts (M97-M100)
-  const qf = [
-    {id:"QF_1", matchNum:97,  home: getKoWinner("R16_2", playerKoPreds, r16), away: getKoWinner("R16_1", playerKoPreds, r16)},
-    {id:"QF_2", matchNum:98,  home: getKoWinner("R16_5", playerKoPreds, r16), away: getKoWinner("R16_6", playerKoPreds, r16)},
-    {id:"QF_3", matchNum:99,  home: getKoWinner("R16_3", playerKoPreds, r16), away: getKoWinner("R16_4", playerKoPreds, r16)},
-    {id:"QF_4", matchNum:100, home: getKoWinner("R16_7", playerKoPreds, r16), away: getKoWinner("R16_8", playerKoPreds, r16)},
-  ];
-
-  // SF — demi-finales (M101-M102)
-  const sf = [
-    {id:"SF_1", matchNum:101, home: getKoWinner("QF_1", playerKoPreds, qf), away: getKoWinner("QF_2", playerKoPreds, qf)},
-    {id:"SF_2", matchNum:102, home: getKoWinner("QF_3", playerKoPreds, qf), away: getKoWinner("QF_4", playerKoPreds, qf)},
-  ];
-
-  // Match pour la 3e place (M103) — perdants des demies
-  const getKoLoser = (matchId, koScores, roundMatches) => {
-    const pred = koScores[matchId];
-    if (!pred || pred.h === "" || pred.a === "") return null;
-    const h = parseInt(pred.h), a = parseInt(pred.a);
-    if (isNaN(h) || isNaN(a)) return null;
-    const match = roundMatches.find(m => m.id === matchId);
-    if (!match) return null;
-    if (h === a) {
-      if (pred.pen === "home") return match.away;
-      if (pred.pen === "away") return match.home;
-      return null;
+// Résout l'équipe home/away d'un match KO — soit fixe (R32 avec groupStandings), soit dérivée (from: [...])
+function resolveKoTeam(match, side, koScores) {
+  if (match.home && match.away) {
+    // R32 fixed match
+    return match[side];
+  }
+  if (match.from) {
+    // R16/QF/SF/Final/Third: derived from previous round winners (or loser for 3rd place match)
+    const [matchA, matchB] = match.from;
+    const idx = side === "home" ? 0 : 1;
+    const sourceId = match.from[idx];
+    if (match.loser) {
+      return getKoLoserFixed(sourceId, koScores);
     }
-    return h > a ? match.away : match.home;
+    return getKoWinnerFixed(sourceId, koScores);
+  }
+  return null;
+}
+
+// Construit un tour avec les équipes résolues (pour affichage)
+function resolveKoRound(roundMatches, koScores) {
+  return roundMatches.map(m => ({
+    ...m,
+    home: resolveKoTeam(m, "home", koScores),
+    away: resolveKoTeam(m, "away", koScores),
+  }));
+}
+
+function buildFullBracket(koScores) {
+  return {
+    r32: resolveKoRound(KO_MATCHES.r32, koScores),
+    r16: resolveKoRound(KO_MATCHES.r16, koScores),
+    qf: resolveKoRound(KO_MATCHES.qf, koScores),
+    sf: resolveKoRound(KO_MATCHES.sf, koScores),
+    third: resolveKoRound(KO_MATCHES.third, koScores),
+    final: resolveKoRound(KO_MATCHES.final, koScores),
   };
-  const third = [
-    {id:"THIRD", matchNum:103, home: getKoLoser("SF_1", playerKoPreds, sf), away: getKoLoser("SF_2", playerKoPreds, sf)},
-  ];
-
-  // Finale (M104)
-  const final = [
-    {id:"F_1", matchNum:104, home: getKoWinner("SF_1", playerKoPreds, sf), away: getKoWinner("SF_2", playerKoPreds, sf)},
-  ];
-
-  return { r32, r16, qf, sf, third, final };
 }
 
 // ══════════════════════════════════════════════════════════
@@ -657,7 +635,7 @@ let state = {
   players: {},        // { id: { name, lang, code } }
   predictions: {},    // { playerId: { matchId: {h,a} } }
   actuals: {},        // { matchId: {h,a} }
-  tab: "pronostics",
+  tab: "knockout",
   group: "ALL",
   isAdmin: false,
   lang: "fr",
@@ -744,11 +722,6 @@ async function saveActual(matchId, h, a) {
   // Save the actual score
   await dbUpdate(dbRef(db, `actuals/${matchId}`), {h, a});
 
-  // If it's a group match, check if qualifiers changed and reset affected KO slots
-  const match = MATCHES.find(m => m.id === matchId);
-  if (match) {
-    await resetAffectedKOSlots();
-  }
   flashSave();
 }
 
@@ -767,58 +740,14 @@ async function saveKoActualWithPenAndReset(matchId, h, a, pen) {
 }
 
 // Get the real R32 bracket from actual scores
-function buildR32fromActuals() {
-  return buildR32fromScores(state.actuals);
-}
-
-// Reset KO predictions for all players if their predicted teams differ from real teams
-async function resetAffectedKOSlots() {
-  const realR32 = buildR32fromActuals();
-  const players = Object.keys(state.players);
-
-  for (const playerId of players) {
-    const playerGroupPreds = (state.predictions[playerId] || {});
-    const playerR32 = buildR32fromScores(playerGroupPreds);
-    const playerKoPreds = (state.koPredictions?.[playerId] || {});
-
-    for (const realMatch of realR32) {
-      const predMatch = playerR32.find(m => m.id === realMatch.id);
-      if (!predMatch) continue;
-
-      // If real teams differ from predicted teams for this slot
-      const teamsChanged = realMatch.home !== predMatch.home || realMatch.away !== predMatch.away;
-      if (teamsChanged && playerKoPreds[realMatch.id]) {
-        // Erase this player's KO prediction for this slot
-        await dbSet(dbRef(db, `koPredictions/${playerId}/${realMatch.id}`), null);
-        // Also erase all downstream slots
-        await resetDownstreamKOForPlayer(playerId, realMatch.id);
-      }
-    }
-  }
-}
-
 // Map of which matches feed into which next round
-const KO_DOWNSTREAM = {
-  "R32_1":  "R16_1", "R32_3":  "R16_1",
-  "R32_2":  "R16_2", "R32_5":  "R16_2",
-  "R32_4":  "R16_3", "R32_6":  "R16_3",
-  "R32_7":  "R16_4", "R32_8":  "R16_4",
-  "R32_11": "R16_5", "R32_12": "R16_5",
-  "R32_9":  "R16_6", "R32_10": "R16_6",
-  "R32_14": "R16_7", "R32_16": "R16_7",
-  "R32_13": "R16_8", "R32_15": "R16_8",
-  "R16_2":  "QF_1",  "R16_1":  "QF_1",
-  "R16_5":  "QF_2",  "R16_6":  "QF_2",
-  "R16_3":  "QF_3",  "R16_4":  "QF_3",
-  "R16_7":  "QF_4",  "R16_8":  "QF_4",
-  "QF_1":   "SF_1",  "QF_2":   "SF_1",
-  "QF_3":   "SF_2",  "QF_4":   "SF_2",
-  "SF_1":   "F_1",   "SF_2":   "F_1",
-  "SF_1":   "THIRD", "SF_2":   "THIRD",
-};
+// Trouve tous les matchs dont les équipes dépendent (directement) du résultat de matchId
+function findDownstreamKoIds(matchId) {
+  const allKo = [...KO_MATCHES.r32, ...KO_MATCHES.r16, ...KO_MATCHES.qf, ...KO_MATCHES.sf, ...KO_MATCHES.third, ...KO_MATCHES.final];
+  return allKo.filter(m => m.from && m.from.includes(matchId)).map(m => m.id);
+}
 
 async function resetDownstreamKO(matchId) {
-  // Reset for all players
   const players = Object.keys(state.players);
   for (const playerId of players) {
     await resetDownstreamKOForPlayer(playerId, matchId);
@@ -826,10 +755,11 @@ async function resetDownstreamKO(matchId) {
 }
 
 async function resetDownstreamKOForPlayer(playerId, matchId) {
-  const next = KO_DOWNSTREAM[matchId];
-  if (!next) return;
-  await dbSet(dbRef(db, `koPredictions/${playerId}/${next}`), null);
-  await resetDownstreamKOForPlayer(playerId, next);
+  const nexts = findDownstreamKoIds(matchId);
+  for (const next of nexts) {
+    await dbSet(dbRef(db, `koPredictions/${playerId}/${next}`), null);
+    await resetDownstreamKOForPlayer(playerId, next);
+  }
 }
 
 // ── AUTH ─────────────────────────────────────────────────
@@ -967,8 +897,8 @@ function render() {
     </div>
 
     <div class="tabs">
-      <button class="tab ${state.tab==="pronostics"?"active":""}" data-tab="pronostics" style="font-size:11px;padding:9px 4px">
-        📋 ${L?"Predict.":"Pronos"}
+      <button class="tab ${state.tab==="knockout"?"active":""}" data-tab="knockout" style="font-size:11px;padding:9px 4px">
+        ⚔️ ${L?"Knockout":"Phases"}
       </button>
       <button class="tab ${state.tab==="classement"?"active":""}" data-tab="classement" style="font-size:11px;padding:9px 4px">
         🏆 ${L?"Ranking":"Classmt"}
@@ -976,8 +906,8 @@ function render() {
       <button class="tab ${state.tab==="groupes"?"active":""}" data-tab="groupes" style="font-size:11px;padding:9px 4px">
         📊 ${L?"Groups":"Groupes"}
       </button>
-      <button class="tab ${state.tab==="knockout"?"active":""}" data-tab="knockout" style="font-size:11px;padding:9px 4px">
-        ⚔️ ${L?"Knockout":"Phases"}
+      <button class="tab ${state.tab==="pronostics"?"active":""}" data-tab="pronostics" style="font-size:11px;padding:9px 4px">
+        📋 ${L?"Predict.":"Pronos"}
       </button>
     </div>
 
@@ -1264,18 +1194,22 @@ function renderKoMatch(match, pred, L, isAdmin, koActual) {
   const awayName = awayTeam ? (L ? awayTeam.en : awayTeam.name) : tbd;
   const homeFlag = homeTeam ? homeTeam.flag : "❓";
   const awayFlag = awayTeam ? awayTeam.flag : "❓";
-  const canPredict = home && away;
+  const koStarted = match.date && match.time ? isStarted(match) : false;
+  const canPredict = home && away && !koStarted;
   const hasActual = koActual && koActual.h !== "" && koActual.a !== "";
   const pts = isAdmin ? null : calcPoints(pred||{h:"",a:""}, koActual||{h:"",a:""});
   const ptsColor = pts===3?"var(--green)":pts===1?"var(--yellow)":pts===0?"var(--red)":"#666";
 
   const roundLabel = match.id.startsWith("R32")?"1/16":match.id.startsWith("R16")?"1/8":match.id.startsWith("QF")?"1/4":match.id.startsWith("SF")?"1/2":"Finale";
 
+  const matchDateTime = match.date && match.time ? `${fmtLocalDate(match.date, match.time)} · ${fmtLocalTime(match.date, match.time)}` : "";
+
   return `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:5px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">
-      <span style="font-size:9px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase">${roundLabel} · ${match.id.replace(/[A-Z_]+/,"").replace("_","")}</span>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <span style="font-size:9px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase">${roundLabel} · M${match.matchNum || "?"}</span>
       ${pts!==null?`<span style="font-size:11px;font-weight:700;color:${ptsColor};background:${ptsColor}22;border-radius:20px;padding:2px 8px">${pts} pt${pts>1?"s":""}</span>`:""}
     </div>
+    ${matchDateTime ? `<div style="font-size:9px;color:var(--text3);margin-bottom:7px">📅 ${matchDateTime} · 📍 ${match.venue||""}</div>` : ""}
     <div style="display:flex;align-items:center;gap:6px">
       <span style="font-size:16px">${homeFlag}</span>
       <span style="flex:1;font-size:12px;font-weight:700;color:${home?"var(--text)":"var(--text3)"}">${homeName}</span>
@@ -1336,30 +1270,24 @@ function renderRound(matches, playerKoPreds, koActuals, L, isAdmin, title) {
 }
 
 function renderKnockout(L) {
-  const playerGroupPreds = (state.predictions[state.player] || {});
+  // Le bracket utilise les PRONOSTICS du joueur (transmis sur les vrais matchs fixes)
   const playerKoPreds = (state.koPredictions?.[state.player] || {});
   const koActuals = state.koActuals || {};
 
-  const bracket = buildFullBracket(playerGroupPreds, playerKoPreds);
+  const bracket = buildFullBracket(playerKoPreds);
   const {r32, r16, qf, sf, third, final} = bracket;
 
-  // Count how many group matches the player has predicted
-  const predCount = MATCHES.filter(m => {
-    const p = playerGroupPreds[m.id];
+  const predCount = KO_MATCHES.r32.filter(m => {
+    const p = playerKoPreds[m.id];
     return p && p.h !== "" && p.a !== "";
   }).length;
-
-  const pct = Math.round(predCount / MATCHES.length * 100);
 
   return `
     <div style="margin-bottom:16px;padding:12px 14px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;font-size:12px;color:var(--text2)">
       💡 ${L
-        ? "Your bracket is built from your own group stage predictions. The more you fill in, the more teams appear!"
-        : "Ton tableau est construit à partir de tes pronostics de groupes. Plus tu remplis, plus les équipes apparaissent !"}
-      <div style="margin-top:6px;background:rgba(255,255,255,0.06);border-radius:4px;height:4px;overflow:hidden">
-        <div style="height:4px;width:${pct}%;background:var(--gold);border-radius:4px;transition:width 0.3s"></div>
-      </div>
-      <div style="margin-top:4px;font-size:11px;color:var(--text3)">${predCount} / ${MATCHES.length} ${L?"group matches predicted":"matchs de groupe pronostiqués"}</div>
+        ? "Predict the real knockout matches. Winners advance automatically as you go!"
+        : "Pronostique les vrais matchs à élimination. Les vainqueurs avancent automatiquement au fil de tes pronostics !"}
+      <div style="margin-top:4px;font-size:11px;color:var(--text3)">${predCount} / 16 ${L?"Round of 32 matches predicted":"matchs des 1/16 pronostiqués"}</div>
     </div>
 
     ${renderRound(r32, playerKoPreds, koActuals, L, state.isAdmin, L?"Round of 32 — 1/16":"1/16 de finale")}
@@ -1411,11 +1339,6 @@ async function saveActual(matchId, h, a) {
   // Save the actual score
   await dbUpdate(dbRef(db, `actuals/${matchId}`), {h, a});
 
-  // If it's a group match, check if qualifiers changed and reset affected KO slots
-  const match = MATCHES.find(m => m.id === matchId);
-  if (match) {
-    await resetAffectedKOSlots();
-  }
   flashSave();
 }
 
@@ -1430,10 +1353,11 @@ async function resetDownstreamKO(matchId) {
 }
 
 async function resetDownstreamKOForPlayer(playerId, matchId) {
-  const next = KO_DOWNSTREAM[matchId];
-  if (!next) return;
-  await dbSet(dbRef(db, `koPredictions/${playerId}/${next}`), null);
-  await resetDownstreamKOForPlayer(playerId, next);
+  const nexts = findDownstreamKoIds(matchId);
+  for (const next of nexts) {
+    await dbSet(dbRef(db, `koPredictions/${playerId}/${next}`), null);
+    await resetDownstreamKOForPlayer(playerId, next);
+  }
 }
 
 // ── AUTH ─────────────────────────────────────────────────
@@ -1571,8 +1495,8 @@ function render() {
     </div>
 
     <div class="tabs">
-      <button class="tab ${state.tab==="pronostics"?"active":""}" data-tab="pronostics" style="font-size:11px;padding:9px 4px">
-        📋 ${L?"Predict.":"Pronos"}
+      <button class="tab ${state.tab==="knockout"?"active":""}" data-tab="knockout" style="font-size:11px;padding:9px 4px">
+        ⚔️ ${L?"Knockout":"Phases"}
       </button>
       <button class="tab ${state.tab==="classement"?"active":""}" data-tab="classement" style="font-size:11px;padding:9px 4px">
         🏆 ${L?"Ranking":"Classmt"}
@@ -1580,8 +1504,8 @@ function render() {
       <button class="tab ${state.tab==="groupes"?"active":""}" data-tab="groupes" style="font-size:11px;padding:9px 4px">
         📊 ${L?"Groups":"Groupes"}
       </button>
-      <button class="tab ${state.tab==="knockout"?"active":""}" data-tab="knockout" style="font-size:11px;padding:9px 4px">
-        ⚔️ ${L?"Knockout":"Phases"}
+      <button class="tab ${state.tab==="pronostics"?"active":""}" data-tab="pronostics" style="font-size:11px;padding:9px 4px">
+        📋 ${L?"Predict.":"Pronos"}
       </button>
     </div>
 
@@ -1955,35 +1879,25 @@ function renderGroupes(L) {
     </div>
   `;
 
-  // Real full bracket based on actual scores (R32 through Final)
-  const realBracket = buildFullBracket(state.actuals, state.koActuals);
-
-  // Track which groups are fully complete
-  const completeGroups = new Set(GROUPS_LIST.filter(g => {
-    return MATCHES.filter(m=>m.group===g)
-      .every(m => { const a=state.actuals[m.id]; return a&&a.h!==""&&a.a!==""; });
-  }));
+  // Real bracket — scores réels saisis en admin (mêmes matchs que l'onglet Phases)
+  const realBracket = buildFullBracket(state.koActuals);
 
   const renderRealMatch = (m, i) => {
     const home = m.home ? TEAMS[m.home] : null;
     const away = m.away ? TEAMS[m.away] : null;
     const tbd = `<span style="color:var(--text3);font-style:italic">${L?"TBD":"À déterm."}</span>`;
-    const homeGroup = m.home ? GROUPS_LIST.find(g => GROUP_TEAMS[g].includes(m.home)) : null;
-    const awayGroup = m.away ? GROUPS_LIST.find(g => GROUP_TEAMS[g].includes(m.away)) : null;
-    const homeProvisional = homeGroup && !completeGroups.has(homeGroup);
-    const awayProvisional = awayGroup && !completeGroups.has(awayGroup);
     const actual = state.koActuals[m.id];
     const hasResult = actual && actual.h !== "" && actual.a !== "";
 
     return `<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--border)">
-      <span style="font-size:10px;color:var(--text3);width:20px">${i+1}</span>
+      <span style="font-size:10px;color:var(--text3);width:24px">M${m.matchNum||i+1}</span>
       <span style="font-size:14px">${home?.flag||"❓"}</span>
       <span style="flex:1;font-size:12px;font-weight:${home?"600":"400"};color:${home?"var(--text)":"var(--text3)"}">
-        ${home?(L?home.en:home.name):tbd}${homeProvisional?" ⏳":""}
+        ${home?(L?home.en:home.name):tbd}
       </span>
-      ${hasResult ? `<span style="font-size:12px;font-weight:800;color:var(--gold);font-family:'DM Mono',monospace">${actual.h}–${actual.a}</span>` : `<span style="font-size:10px;color:var(--text3)">vs</span>`}
+      ${hasResult ? `<span style="font-size:12px;font-weight:800;color:var(--gold);font-family:'DM Mono',monospace">${actual.h}–${actual.a}${actual.pen?` <span style="font-size:9px;color:var(--text3)">(t.a.b.)</span>`:""}</span>` : `<span style="font-size:10px;color:var(--text3)">vs</span>`}
       <span style="flex:1;font-size:12px;font-weight:${away?"600":"400"};color:${away?"var(--text)":"var(--text3)"};text-align:right">
-        ${awayProvisional?"⏳ ":""}${away?(L?away.en:away.name):tbd}
+        ${away?(L?away.en:away.name):tbd}
       </span>
       <span style="font-size:14px">${away?.flag||"❓"}</span>
     </div>`;
@@ -1998,11 +1912,8 @@ function renderGroupes(L) {
 
   const realBracketHtml = `
     <div style="background:var(--bg2);border:1px solid rgba(0,229,160,0.3);border-radius:12px;padding:12px;margin-bottom:10px">
-      <div style="font-size:11px;font-weight:800;color:var(--green);letter-spacing:2px;margin-bottom:6px">
+      <div style="font-size:11px;font-weight:800;color:var(--green);letter-spacing:2px;margin-bottom:10px">
         ⚔️ ${L?"REAL BRACKET":"BRACKET RÉEL"}
-      </div>
-      <div style="font-size:10px;color:var(--text3);margin-bottom:10px">
-        ⏳ = ${L?"provisional (group not finished)":"provisoire (groupe non terminé)"}
       </div>
       ${renderRealRound(realBracket.r32, L?"Round of 32":"1/16 de finale")}
       ${renderRealRound(realBracket.r16, L?"Round of 16":"1/8 de finale")}
