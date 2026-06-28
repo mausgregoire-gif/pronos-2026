@@ -636,6 +636,7 @@ let state = {
   predictions: {},    // { playerId: { matchId: {h,a} } }
   actuals: {},        // { matchId: {h,a} }
   tab: "knockout",
+  classementMode: "knockout",
   group: "ALL",
   isAdmin: false,
   lang: "fr",
@@ -1025,26 +1026,72 @@ function renderMatchCard(m, playerList, L) {
   `;
 }
 
+function calcGroupPoints(id) {
+  let total=0, exact=0, correct=0, played=0;
+  MATCHES.forEach(m => {
+    const pred = (state.predictions[id]||{})[m.id];
+    const actual = state.actuals[m.id];
+    const pts = calcPoints(pred, actual);
+    if (pts !== null) { total+=pts; played++; if(pts===3)exact++; if(pts>=1)correct++; }
+  });
+  return {total, exact, correct, played};
+}
+
+function calcKoPoints(id) {
+  let total=0, exact=0, correct=0, played=0;
+  const allKo = [...KO_MATCHES.r32, ...KO_MATCHES.r16, ...KO_MATCHES.qf, ...KO_MATCHES.sf, ...KO_MATCHES.third, ...KO_MATCHES.final];
+  allKo.forEach(m => {
+    const pred = (state.koPredictions?.[id]||{})[m.id];
+    const actual = state.koActuals[m.id];
+    const pts = calcPoints(pred, actual);
+    if (pts !== null) { total+=pts; played++; if(pts===3)exact++; if(pts>=1)correct++; }
+  });
+  return {total, exact, correct, played};
+}
+
 function renderClassement(playerList, L) {
+  const mode = state.classementMode || "total";
+
   const played = MATCHES.filter(m => {
     const a = state.actuals[m.id];
     return a && a.h !== "" && a.a !== "";
   }).length;
+  const allKo = [...KO_MATCHES.r32, ...KO_MATCHES.r16, ...KO_MATCHES.qf, ...KO_MATCHES.sf, ...KO_MATCHES.third, ...KO_MATCHES.final];
+  const koPlayed = allKo.filter(m => {
+    const a = state.koActuals[m.id];
+    return a && a.h !== "" && a.a !== "";
+  }).length;
 
   const scores = playerList.map(([id, p]) => {
-    let total=0, exact=0, correct=0, played2=0;
-    MATCHES.forEach(m => {
-      const pred = (state.predictions[id]||{})[m.id];
-      const actual = state.actuals[m.id];
-      const pts = calcPoints(pred, actual);
-      if (pts !== null) { total+=pts; played2++; if(pts===3)exact++; if(pts>=1)correct++; }
-    });
-    return {id, name:p.name, total, exact, correct, played:played2};
+    const g = calcGroupPoints(id);
+    const k = calcKoPoints(id);
+    let total, exact, correct;
+    if (mode === "groups") { total=g.total; exact=g.exact; correct=g.correct; }
+    else if (mode === "knockout") { total=k.total; exact=k.exact; correct=k.correct; }
+    else { total=g.total+k.total; exact=g.exact+k.exact; correct=g.correct+k.correct; }
+    return {id, name:p.name, total, exact, correct};
   }).sort((a,b) => b.total-a.total || b.exact-a.exact);
 
+  const tabs = [
+    {key:"knockout", label: L?"Knockout":"Phases finales"},
+    {key:"groups", label: L?"Groups":"Groupes"},
+    {key:"total", label: L?"Total":"Total"},
+  ];
+
   return `
+    <div style="display:flex;gap:4px;margin-bottom:14px;background:rgba(255,255,255,0.04);border-radius:10px;padding:4px">
+      ${tabs.map(t => `
+        <button class="classement-mode-btn" data-mode="${t.key}" style="flex:1;padding:8px 4px;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;background:${mode===t.key?"var(--gold)":"transparent"};color:${mode===t.key?"#080b10":"var(--text2)"}">
+          ${t.label}
+        </button>
+      `).join("")}
+    </div>
+
     <div style="margin-bottom:14px;font-size:12px;color:var(--text2)">
-      ${played} / ${MATCHES.length} ${L?"matches played":"matchs joués"} · ${playerList.length} ${L?"players":"joueurs"}
+      ${mode==="groups" ? `${played} / ${MATCHES.length} ${L?"group matches played":"matchs de groupe joués"}` :
+        mode==="knockout" ? `${koPlayed} / ${allKo.length} ${L?"knockout matches played":"matchs à élimination joués"} · 💡 ${L?"Fresh leaderboard — anyone can join now!":"Classement repart à zéro — tout le monde peut rejoindre maintenant !"}` :
+        `${played+koPlayed} / ${MATCHES.length+allKo.length} ${L?"matches played":"matchs joués"}`}
+      · ${playerList.length} ${L?"players":"joueurs"}
     </div>
     ${scores.length === 0 ? `<div class="empty">Aucun joueur inscrit</div>` : scores.map((s, i) => `
       <div class="lb-item ${i===0?"first":""}">
@@ -1674,26 +1721,72 @@ function renderMatchCard(m, playerList, L) {
   `;
 }
 
+function calcGroupPoints(id) {
+  let total=0, exact=0, correct=0, played=0;
+  MATCHES.forEach(m => {
+    const pred = (state.predictions[id]||{})[m.id];
+    const actual = state.actuals[m.id];
+    const pts = calcPoints(pred, actual);
+    if (pts !== null) { total+=pts; played++; if(pts===3)exact++; if(pts>=1)correct++; }
+  });
+  return {total, exact, correct, played};
+}
+
+function calcKoPoints(id) {
+  let total=0, exact=0, correct=0, played=0;
+  const allKo = [...KO_MATCHES.r32, ...KO_MATCHES.r16, ...KO_MATCHES.qf, ...KO_MATCHES.sf, ...KO_MATCHES.third, ...KO_MATCHES.final];
+  allKo.forEach(m => {
+    const pred = (state.koPredictions?.[id]||{})[m.id];
+    const actual = state.koActuals[m.id];
+    const pts = calcPoints(pred, actual);
+    if (pts !== null) { total+=pts; played++; if(pts===3)exact++; if(pts>=1)correct++; }
+  });
+  return {total, exact, correct, played};
+}
+
 function renderClassement(playerList, L) {
+  const mode = state.classementMode || "total";
+
   const played = MATCHES.filter(m => {
     const a = state.actuals[m.id];
     return a && a.h !== "" && a.a !== "";
   }).length;
+  const allKo = [...KO_MATCHES.r32, ...KO_MATCHES.r16, ...KO_MATCHES.qf, ...KO_MATCHES.sf, ...KO_MATCHES.third, ...KO_MATCHES.final];
+  const koPlayed = allKo.filter(m => {
+    const a = state.koActuals[m.id];
+    return a && a.h !== "" && a.a !== "";
+  }).length;
 
   const scores = playerList.map(([id, p]) => {
-    let total=0, exact=0, correct=0, played2=0;
-    MATCHES.forEach(m => {
-      const pred = (state.predictions[id]||{})[m.id];
-      const actual = state.actuals[m.id];
-      const pts = calcPoints(pred, actual);
-      if (pts !== null) { total+=pts; played2++; if(pts===3)exact++; if(pts>=1)correct++; }
-    });
-    return {id, name:p.name, total, exact, correct, played:played2};
+    const g = calcGroupPoints(id);
+    const k = calcKoPoints(id);
+    let total, exact, correct;
+    if (mode === "groups") { total=g.total; exact=g.exact; correct=g.correct; }
+    else if (mode === "knockout") { total=k.total; exact=k.exact; correct=k.correct; }
+    else { total=g.total+k.total; exact=g.exact+k.exact; correct=g.correct+k.correct; }
+    return {id, name:p.name, total, exact, correct};
   }).sort((a,b) => b.total-a.total || b.exact-a.exact);
 
+  const tabs = [
+    {key:"knockout", label: L?"Knockout":"Phases finales"},
+    {key:"groups", label: L?"Groups":"Groupes"},
+    {key:"total", label: L?"Total":"Total"},
+  ];
+
   return `
+    <div style="display:flex;gap:4px;margin-bottom:14px;background:rgba(255,255,255,0.04);border-radius:10px;padding:4px">
+      ${tabs.map(t => `
+        <button class="classement-mode-btn" data-mode="${t.key}" style="flex:1;padding:8px 4px;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;background:${mode===t.key?"var(--gold)":"transparent"};color:${mode===t.key?"#080b10":"var(--text2)"}">
+          ${t.label}
+        </button>
+      `).join("")}
+    </div>
+
     <div style="margin-bottom:14px;font-size:12px;color:var(--text2)">
-      ${played} / ${MATCHES.length} ${L?"matches played":"matchs joués"} · ${playerList.length} ${L?"players":"joueurs"}
+      ${mode==="groups" ? `${played} / ${MATCHES.length} ${L?"group matches played":"matchs de groupe joués"}` :
+        mode==="knockout" ? `${koPlayed} / ${allKo.length} ${L?"knockout matches played":"matchs à élimination joués"} · 💡 ${L?"Fresh leaderboard — anyone can join now!":"Classement repart à zéro — tout le monde peut rejoindre maintenant !"}` :
+        `${played+koPlayed} / ${MATCHES.length+allKo.length} ${L?"matches played":"matchs joués"}`}
+      · ${playerList.length} ${L?"players":"joueurs"}
     </div>
     ${scores.length === 0 ? `<div class="empty">Aucun joueur inscrit</div>` : scores.map((s, i) => `
       <div class="lb-item ${i===0?"first":""}">
@@ -1990,6 +2083,14 @@ function renderGroupes(L) {
 }
 
 function bindEvents(groups, filteredMatches, playerList, L) {
+  // Classement mode toggle
+  document.querySelectorAll(".classement-mode-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      state.classementMode = btn.dataset.mode;
+      render();
+    });
+  });
+
   // Tabs — flush pending Firebase data on tab switch
   document.querySelectorAll(".tab").forEach(btn => {
     btn.addEventListener("click", () => {
