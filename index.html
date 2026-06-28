@@ -1095,6 +1095,17 @@ function renderLoginModal() {
         <input class="input-field" id="login-password" type="password" placeholder="${L?"Password":"Mot de passe"}" maxlength="64" autocomplete="${isLogin?'current-password':'new-password'}" />
 
         ${!isLogin ? `
+        <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:14px;padding:10px 12px;background:rgba(255,209,102,0.08);border:1px solid rgba(255,209,102,0.25);border-radius:8px">
+          <span style="font-size:14px;flex-shrink:0">⚠️</span>
+          <span style="font-size:11px;color:#ffd166;line-height:1.5">
+            ${L
+              ? "This is a simple game between friends — passwords aren't stored securely. Pick an easy, throwaway password. <strong>Never reuse a password you use elsewhere.</strong>"
+              : "Ceci est un petit jeu entre amis — les mots de passe ne sont pas stockés de façon sécurisée. Choisis un mot de passe simple et jetable. <strong>Ne réutilise jamais un mot de passe que tu utilises ailleurs.</strong>"}
+          </span>
+        </div>
+        ` : ""}
+
+        ${!isLogin ? `
         <div style="display:flex;gap:8px;margin-bottom:12px">
           <button class="btn btn-ghost lang-btn" data-lang="fr" style="flex:1;${state.lang==='fr'?'border-color:var(--gold);color:var(--gold)':''}">🇫🇷 Français</button>
           <button class="btn btn-ghost lang-btn" data-lang="en" style="flex:1;${state.lang==='en'?'border-color:var(--gold);color:var(--gold)':''}">🇬🇧 English</button>
@@ -1731,6 +1742,17 @@ function renderLoginModal() {
 
         <input class="input-field" id="login-name" placeholder="${L?"Your name":"Ton prénom"}" maxlength="24" autocomplete="username" />
         <input class="input-field" id="login-password" type="password" placeholder="${L?"Password":"Mot de passe"}" maxlength="64" autocomplete="${isLogin?'current-password':'new-password'}" />
+
+        ${!isLogin ? `
+        <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:14px;padding:10px 12px;background:rgba(255,209,102,0.08);border:1px solid rgba(255,209,102,0.25);border-radius:8px">
+          <span style="font-size:14px;flex-shrink:0">⚠️</span>
+          <span style="font-size:11px;color:#ffd166;line-height:1.5">
+            ${L
+              ? "This is a simple game between friends — passwords aren't stored securely. Pick an easy, throwaway password. <strong>Never reuse a password you use elsewhere.</strong>"
+              : "Ceci est un petit jeu entre amis — les mots de passe ne sont pas stockés de façon sécurisée. Choisis un mot de passe simple et jetable. <strong>Ne réutilise jamais un mot de passe que tu utilises ailleurs.</strong>"}
+          </span>
+        </div>
+        ` : ""}
 
         ${!isLogin ? `
         <div style="display:flex;gap:8px;margin-bottom:12px">
