@@ -1184,7 +1184,7 @@ function bindLoginModal() {
 }
 
 
-function renderKoMatch(match, pred, L, isAdmin, koActual) {
+function renderKoMatch(match, pred, L, isAdmin, koActual, playerList, allKoPreds) {
   const home = match.home;
   const away = match.away;
   const homeTeam = home ? TEAMS[home] : null;
@@ -1254,17 +1254,43 @@ function renderKoMatch(match, pred, L, isAdmin, koActual) {
         <span style="font-family:'DM Mono',monospace;font-weight:700;font-size:15px;color:var(--gold)">${koActual.h} – ${koActual.a}</span>
       </div>
     `:""}
+    ${!isAdmin && home && away ? renderOthersRow(match.id, koStarted, hasActual, koActual, playerList, allKoPreds, L) : ""}
   </div>`;
 }
 
-function renderRound(matches, playerKoPreds, koActuals, L, isAdmin, title) {
+// Affiche les autres joueurs : ✓ vert avant le match, score réel après
+function renderOthersRow(matchId, started, hasActual, actual, playerList, allKoPreds, L) {
+  const others = playerList.filter(([id]) => id !== state.player);
+  if (others.length === 0) return "";
+
+  const rows = others.map(([id, p]) => {
+    const pred = (allKoPreds[id] || {})[matchId];
+    const hasPred = pred && pred.h !== "" && pred.a !== "" && pred.h !== undefined;
+    if (!hasPred) return "";
+
+    if (!started) {
+      // Avant le coup d'envoi : juste un ✓ vert, pas de score visible
+      return `<span style="font-size:10px;color:var(--text3);background:var(--bg3);border-radius:6px;padding:2px 7px">${p.name} <span style="color:var(--green)">✓</span></span>`;
+    } else {
+      // Après le coup d'envoi : score du joueur
+      const penLabel = pred.pen ? ` <span style="color:var(--text3)">(t.a.b.)</span>` : "";
+      return `<span style="font-size:10px;color:var(--text2);background:var(--bg3);border-radius:6px;padding:2px 7px">${p.name} ${pred.h}–${pred.a}${penLabel}</span>`;
+    }
+  }).filter(Boolean);
+
+  if (rows.length === 0) return "";
+
+  return `<div style="display:flex;flex-wrap:wrap;gap:5px;padding-top:7px;margin-top:7px;border-top:1px solid var(--border)">${rows.join("")}</div>`;
+}
+
+function renderRound(matches, playerKoPreds, koActuals, L, isAdmin, title, playerList, allKoPreds) {
   return `
     <div style="margin-bottom:20px">
       <div style="font-size:10px;color:var(--gold);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(244,197,66,0.2)">${title}</div>
       ${matches.map(m => {
         const pred = (playerKoPreds||{})[m.id] || {h:"",a:""};
         const koActual = (koActuals||{})[m.id] || {h:"",a:""};
-        return renderKoMatch(m, pred, L, isAdmin, koActual);
+        return renderKoMatch(m, pred, L, isAdmin, koActual, playerList, allKoPreds);
       }).join("")}
     </div>`;
 }
@@ -1281,6 +1307,9 @@ function renderKnockout(L) {
     const p = playerKoPreds[m.id];
     return p && p.h !== "" && p.a !== "";
   }).length;
+
+  const playerList = Object.entries(state.players);
+  const allKoPreds = state.koPredictions || {};
 
   return `
     <div style="margin-bottom:16px;padding:12px 14px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;font-size:12px;color:var(--text2)">
@@ -1301,12 +1330,12 @@ function renderKnockout(L) {
       </div>
     </div>
 
-    ${renderRound(r32, playerKoPreds, koActuals, L, state.isAdmin, L?"Round of 32 — 1/16":"1/16 de finale")}
-    ${renderRound(r16, playerKoPreds, koActuals, L, state.isAdmin, L?"Round of 16 — 1/8":"1/8 de finale")}
-    ${renderRound(qf,  playerKoPreds, koActuals, L, state.isAdmin, L?"Quarter-finals":"1/4 de finale")}
-    ${renderRound(sf,  playerKoPreds, koActuals, L, state.isAdmin, L?"Semi-finals":"Demi-finales")}
-    ${renderRound(third, playerKoPreds, koActuals, L, state.isAdmin, L?"🥉 3rd place":"🥉 Match pour la 3e place")}
-    ${renderRound(final, playerKoPreds, koActuals, L, state.isAdmin, L?"🏆 Final":"🏆 Finale")}
+    ${renderRound(r32, playerKoPreds, koActuals, L, state.isAdmin, L?"Round of 32 — 1/16":"1/16 de finale", playerList, allKoPreds)}
+    ${renderRound(r16, playerKoPreds, koActuals, L, state.isAdmin, L?"Round of 16 — 1/8":"1/8 de finale", playerList, allKoPreds)}
+    ${renderRound(qf,  playerKoPreds, koActuals, L, state.isAdmin, L?"Quarter-finals":"1/4 de finale", playerList, allKoPreds)}
+    ${renderRound(sf,  playerKoPreds, koActuals, L, state.isAdmin, L?"Semi-finals":"Demi-finales", playerList, allKoPreds)}
+    ${renderRound(third, playerKoPreds, koActuals, L, state.isAdmin, L?"🥉 3rd place":"🥉 Match pour la 3e place", playerList, allKoPreds)}
+    ${renderRound(final, playerKoPreds, koActuals, L, state.isAdmin, L?"🏆 Final":"🏆 Finale", playerList, allKoPreds)}
   `;
 }
 
