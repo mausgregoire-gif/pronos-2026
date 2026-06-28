@@ -463,39 +463,76 @@ function getBestThirds(scores) {
 }
 
 // Construit le bracket R32 à partir des scores donnés (pronostics du joueur)
+// Utilise les VRAIS appariements officiels FIFA 2026 (M73-M88)
 function buildR32fromScores(scores, provisional=false) {
   const get = (g, pos) => {
     const s = calcGroupStandings(g, scores);
     const allPlayed = MATCHES.filter(m=>m.group===g)
       .every(m => { const a=scores[m.id]; return a&&a.h!==""&&a.a!==""; });
     if (provisional) {
-      // Show provisional if at least one match played
       const anyPlayed = MATCHES.filter(m=>m.group===g)
         .some(m => { const a=scores[m.id]; return a&&a.h!==""&&a.a!==""; });
       return anyPlayed ? (s[pos]?.team || null) : null;
     }
     return allPlayed ? (s[pos]?.team || null) : null;
   };
-  const t3 = getBestThirds(scores);
-  const g3 = (i) => t3[i]?.team || null;
 
+  // 1st and 2nd of each group
+  const first = {}, second = {};
+  GROUPS_LIST.forEach(g => { first[g] = get(g,0); second[g] = get(g,1); });
+
+  const t8 = getBestThirds(scores); // ordered list of best 8 thirds with .group
+  // Map: which original group each "best third slot" comes from (by rank 1-8)
+  const thirdByRank = {};
+  t8.forEach((t, i) => { thirdByRank[i+1] = t.team; });
+  // Helper to get a third-place team IF it qualified, by checking group membership
+  // FIFA assigns thirds dynamically based on which combo of groups produced 8 thirds.
+  // We use rank order (1st best third, 2nd best third...) matching the standard placeholder slots:
+  // 3A/B/C/D/F, 3C/D/F/G/H, 3C/E/F/H/I, 3E/H/I/J/K, 3B/E/F/I/J, 3A/E/H/I/J, 3E/F/G/I/J, 3D/E/I/J/L
+  // These slots get filled in order by whichever qualifying third matches the group pool.
+  const thirdPools = [
+    ["A","B","C","D","F"],
+    ["C","D","F","G","H"],
+    ["C","E","F","H","I"],
+    ["E","H","I","J","K"],
+    ["B","E","F","I","J"],
+    ["A","E","H","I","J"],
+    ["E","F","G","I","J"],
+    ["D","E","I","J","L"],
+  ];
+  // Assign each qualified third (sorted best to worst) to the first available matching pool slot
+  const usedThirds = new Set();
+  const poolAssignment = {};
+  for (const t of t8) {
+    for (let i = 0; i < thirdPools.length; i++) {
+      if (poolAssignment[i] !== undefined) continue;
+      if (thirdPools[i].includes(t.group)) {
+        poolAssignment[i] = t.team;
+        usedThirds.add(t.team);
+        break;
+      }
+    }
+  }
+  const poolTeam = (idx) => poolAssignment[idx] ?? null;
+
+  // Official R32 (M73-M88), using real team names directly when both teams are known
   return [
-    {id:"R32_1",  home:get("A",0), away:get("B",1)},
-    {id:"R32_2",  home:get("C",0), away:get("D",1)},
-    {id:"R32_3",  home:get("E",0), away:get("F",1)},
-    {id:"R32_4",  home:get("G",0), away:get("H",1)},
-    {id:"R32_5",  home:get("I",0), away:get("J",1)},
-    {id:"R32_6",  home:get("K",0), away:get("L",1)},
-    {id:"R32_7",  home:get("B",0), away:get("A",1)},
-    {id:"R32_8",  home:get("D",0), away:get("C",1)},
-    {id:"R32_9",  home:get("F",0), away:get("E",1)},
-    {id:"R32_10", home:get("H",0), away:get("G",1)},
-    {id:"R32_11", home:get("J",0), away:get("I",1)},
-    {id:"R32_12", home:get("L",0), away:get("K",1)},
-    {id:"R32_13", home:g3(0), away:g3(1)},
-    {id:"R32_14", home:g3(2), away:g3(3)},
-    {id:"R32_15", home:g3(4), away:g3(5)},
-    {id:"R32_16", home:g3(6), away:g3(7)},
+    {id:"R32_1",  matchNum:73, home: second["A"], away: second["B"]},
+    {id:"R32_2",  matchNum:74, home: first["E"],  away: poolTeam(0)},
+    {id:"R32_3",  matchNum:75, home: first["F"],  away: second["C"]},
+    {id:"R32_4",  matchNum:76, home: first["C"],  away: second["F"]},
+    {id:"R32_5",  matchNum:77, home: first["I"],  away: poolTeam(1)},
+    {id:"R32_6",  matchNum:78, home: second["E"], away: second["I"]},
+    {id:"R32_7",  matchNum:79, home: first["A"],  away: poolTeam(2)},
+    {id:"R32_8",  matchNum:80, home: first["L"],  away: poolTeam(3)},
+    {id:"R32_9",  matchNum:81, home: first["D"],  away: poolTeam(4)},
+    {id:"R32_10", matchNum:82, home: first["G"],  away: poolTeam(5)},
+    {id:"R32_11", matchNum:83, home: second["K"], away: second["L"]},
+    {id:"R32_12", matchNum:84, home: first["H"],  away: second["J"]},
+    {id:"R32_13", matchNum:85, home: first["B"],  away: poolTeam(6)},
+    {id:"R32_14", matchNum:86, home: first["J"],  away: second["H"]},
+    {id:"R32_15", matchNum:87, home: first["K"],  away: poolTeam(7)},
+    {id:"R32_16", matchNum:88, home: second["D"], away: second["G"]},
   ];
 }
 
@@ -504,48 +541,73 @@ function getKoWinner(matchId, koScores, r32) {
   const pred = koScores[matchId];
   if (!pred || pred.h === "" || pred.a === "") return null;
   const h = parseInt(pred.h), a = parseInt(pred.a);
-  if (isNaN(h) || isNaN(a) || h === a) return null; // match nul → pas de vainqueur (KO = prolongations)
+  if (isNaN(h) || isNaN(a)) return null;
   const match = r32.find(m => m.id === matchId);
   if (!match) return null;
+  if (h === a) {
+    // Match nul après prolongations -> tirs au but
+    if (pred.pen === "home") return match.home;
+    if (pred.pen === "away") return match.away;
+    return null; // pas encore désigné de vainqueur aux T.A.B.
+  }
   return h > a ? match.home : match.away;
 }
 
 function buildFullBracket(playerGroupPreds, playerKoPreds) {
-  // R32 basé sur pronostics de groupes du joueur
+  // R32 — appariements officiels FIFA (M73-M88)
   const r32 = buildR32fromScores(playerGroupPreds);
 
-  // R16 basé sur pronostics R32 du joueur
+  // R16 — huitièmes de finale (M89-M96), appariements officiels
   const r16 = [
-    {id:"R16_1", home: getKoWinner("R32_1",  playerKoPreds, r32), away: getKoWinner("R32_2",  playerKoPreds, r32)},
-    {id:"R16_2", home: getKoWinner("R32_3",  playerKoPreds, r32), away: getKoWinner("R32_4",  playerKoPreds, r32)},
-    {id:"R16_3", home: getKoWinner("R32_5",  playerKoPreds, r32), away: getKoWinner("R32_6",  playerKoPreds, r32)},
-    {id:"R16_4", home: getKoWinner("R32_7",  playerKoPreds, r32), away: getKoWinner("R32_8",  playerKoPreds, r32)},
-    {id:"R16_5", home: getKoWinner("R32_9",  playerKoPreds, r32), away: getKoWinner("R32_10", playerKoPreds, r32)},
-    {id:"R16_6", home: getKoWinner("R32_11", playerKoPreds, r32), away: getKoWinner("R32_12", playerKoPreds, r32)},
-    {id:"R16_7", home: getKoWinner("R32_13", playerKoPreds, r32), away: getKoWinner("R32_14", playerKoPreds, r32)},
-    {id:"R16_8", home: getKoWinner("R32_15", playerKoPreds, r32), away: getKoWinner("R32_16", playerKoPreds, r32)},
+    {id:"R16_1", matchNum:90, home: getKoWinner("R32_1",  playerKoPreds, r32), away: getKoWinner("R32_3",  playerKoPreds, r32)},
+    {id:"R16_2", matchNum:89, home: getKoWinner("R32_2",  playerKoPreds, r32), away: getKoWinner("R32_5",  playerKoPreds, r32)},
+    {id:"R16_3", matchNum:91, home: getKoWinner("R32_4",  playerKoPreds, r32), away: getKoWinner("R32_6",  playerKoPreds, r32)},
+    {id:"R16_4", matchNum:92, home: getKoWinner("R32_7",  playerKoPreds, r32), away: getKoWinner("R32_8",  playerKoPreds, r32)},
+    {id:"R16_5", matchNum:93, home: getKoWinner("R32_11", playerKoPreds, r32), away: getKoWinner("R32_12", playerKoPreds, r32)},
+    {id:"R16_6", matchNum:94, home: getKoWinner("R32_9",  playerKoPreds, r32), away: getKoWinner("R32_10", playerKoPreds, r32)},
+    {id:"R16_7", matchNum:95, home: getKoWinner("R32_14", playerKoPreds, r32), away: getKoWinner("R32_16", playerKoPreds, r32)},
+    {id:"R16_8", matchNum:96, home: getKoWinner("R32_13", playerKoPreds, r32), away: getKoWinner("R32_15", playerKoPreds, r32)},
   ];
 
-  // QF
+  // QF — quarts (M97-M100)
   const qf = [
-    {id:"QF_1", home: getKoWinner("R16_1", playerKoPreds, r16), away: getKoWinner("R16_2", playerKoPreds, r16)},
-    {id:"QF_2", home: getKoWinner("R16_3", playerKoPreds, r16), away: getKoWinner("R16_4", playerKoPreds, r16)},
-    {id:"QF_3", home: getKoWinner("R16_5", playerKoPreds, r16), away: getKoWinner("R16_6", playerKoPreds, r16)},
-    {id:"QF_4", home: getKoWinner("R16_7", playerKoPreds, r16), away: getKoWinner("R16_8", playerKoPreds, r16)},
+    {id:"QF_1", matchNum:97,  home: getKoWinner("R16_2", playerKoPreds, r16), away: getKoWinner("R16_1", playerKoPreds, r16)},
+    {id:"QF_2", matchNum:98,  home: getKoWinner("R16_5", playerKoPreds, r16), away: getKoWinner("R16_6", playerKoPreds, r16)},
+    {id:"QF_3", matchNum:99,  home: getKoWinner("R16_3", playerKoPreds, r16), away: getKoWinner("R16_4", playerKoPreds, r16)},
+    {id:"QF_4", matchNum:100, home: getKoWinner("R16_7", playerKoPreds, r16), away: getKoWinner("R16_8", playerKoPreds, r16)},
   ];
 
-  // SF
+  // SF — demi-finales (M101-M102)
   const sf = [
-    {id:"SF_1", home: getKoWinner("QF_1", playerKoPreds, qf), away: getKoWinner("QF_2", playerKoPreds, qf)},
-    {id:"SF_2", home: getKoWinner("QF_3", playerKoPreds, qf), away: getKoWinner("QF_4", playerKoPreds, qf)},
+    {id:"SF_1", matchNum:101, home: getKoWinner("QF_1", playerKoPreds, qf), away: getKoWinner("QF_2", playerKoPreds, qf)},
+    {id:"SF_2", matchNum:102, home: getKoWinner("QF_3", playerKoPreds, qf), away: getKoWinner("QF_4", playerKoPreds, qf)},
   ];
 
-  // Finale
+  // Match pour la 3e place (M103) — perdants des demies
+  const getKoLoser = (matchId, koScores, roundMatches) => {
+    const pred = koScores[matchId];
+    if (!pred || pred.h === "" || pred.a === "") return null;
+    const h = parseInt(pred.h), a = parseInt(pred.a);
+    if (isNaN(h) || isNaN(a)) return null;
+    const match = roundMatches.find(m => m.id === matchId);
+    if (!match) return null;
+    if (h === a) {
+      if (pred.pen === "home") return match.away;
+      if (pred.pen === "away") return match.home;
+      return null;
+    }
+    return h > a ? match.away : match.home;
+  };
+  const third = [
+    {id:"THIRD", matchNum:103, home: getKoLoser("SF_1", playerKoPreds, sf), away: getKoLoser("SF_2", playerKoPreds, sf)},
+  ];
+
+  // Finale (M104)
   const final = [
-    {id:"F_1", home: getKoWinner("SF_1", playerKoPreds, sf), away: getKoWinner("SF_2", playerKoPreds, sf)},
+    {id:"F_1", matchNum:104, home: getKoWinner("SF_1", playerKoPreds, sf), away: getKoWinner("SF_2", playerKoPreds, sf)},
   ];
 
-  return { r32, r16, qf, sf, final };
+  return { r32, r16, qf, sf, third, final };
 }
 
 // ══════════════════════════════════════════════════════════
@@ -662,7 +724,14 @@ async function savePrediction(matchId, h, a) {
 
 async function saveKoPrediction(matchId, h, a) {
   if (!state.player) return;
-  await dbUpdate(dbRef(db, `koPredictions/${state.player}/${matchId}`), {h, a});
+  const cur = (state.koPredictions[state.player]||{})[matchId] || {};
+  await dbUpdate(dbRef(db, `koPredictions/${state.player}/${matchId}`), {h, a, pen: cur.pen ?? null});
+  flashSave();
+}
+
+async function saveKoPredictionWithPen(matchId, h, a, pen) {
+  if (!state.player) return;
+  await dbUpdate(dbRef(db, `koPredictions/${state.player}/${matchId}`), {h, a, pen});
   flashSave();
 }
 
@@ -684,8 +753,15 @@ async function saveActual(matchId, h, a) {
 }
 
 async function saveKoActualWithReset(matchId, h, a) {
-  await dbUpdate(dbRef(db, `koActuals/${matchId}`), {h, a});
+  const cur = state.koActuals[matchId] || {};
+  await dbUpdate(dbRef(db, `koActuals/${matchId}`), {h, a, pen: cur.pen ?? null});
   // Reset downstream KO predictions for all players
+  await resetDownstreamKO(matchId);
+  flashSave();
+}
+
+async function saveKoActualWithPenAndReset(matchId, h, a, pen) {
+  await dbUpdate(dbRef(db, `koActuals/${matchId}`), {h, a, pen});
   await resetDownstreamKO(matchId);
   flashSave();
 }
@@ -723,21 +799,22 @@ async function resetAffectedKOSlots() {
 
 // Map of which matches feed into which next round
 const KO_DOWNSTREAM = {
-  "R32_1":  "R16_1", "R32_2":  "R16_1",
-  "R32_3":  "R16_2", "R32_4":  "R16_2",
-  "R32_5":  "R16_3", "R32_6":  "R16_3",
+  "R32_1":  "R16_1", "R32_3":  "R16_1",
+  "R32_2":  "R16_2", "R32_5":  "R16_2",
+  "R32_4":  "R16_3", "R32_6":  "R16_3",
   "R32_7":  "R16_4", "R32_8":  "R16_4",
-  "R32_9":  "R16_5", "R32_10": "R16_5",
-  "R32_11": "R16_6", "R32_12": "R16_6",
-  "R32_13": "R16_7", "R32_14": "R16_7",
-  "R32_15": "R16_8", "R32_16": "R16_8",
-  "R16_1":  "QF_1",  "R16_2":  "QF_1",
-  "R16_3":  "QF_2",  "R16_4":  "QF_2",
-  "R16_5":  "QF_3",  "R16_6":  "QF_3",
+  "R32_11": "R16_5", "R32_12": "R16_5",
+  "R32_9":  "R16_6", "R32_10": "R16_6",
+  "R32_14": "R16_7", "R32_16": "R16_7",
+  "R32_13": "R16_8", "R32_15": "R16_8",
+  "R16_2":  "QF_1",  "R16_1":  "QF_1",
+  "R16_5":  "QF_2",  "R16_6":  "QF_2",
+  "R16_3":  "QF_3",  "R16_4":  "QF_3",
   "R16_7":  "QF_4",  "R16_8":  "QF_4",
   "QF_1":   "SF_1",  "QF_2":   "SF_1",
   "QF_3":   "SF_2",  "QF_4":   "SF_2",
   "SF_1":   "F_1",   "SF_2":   "F_1",
+  "SF_1":   "THIRD", "SF_2":   "THIRD",
 };
 
 async function resetDownstreamKO(matchId) {
@@ -1213,6 +1290,13 @@ function renderKoMatch(match, pred, L, isAdmin, koActual) {
       <span style="flex:1;font-size:12px;font-weight:700;color:${away?"var(--text)":"var(--text3)"};text-align:right">${awayName}</span>
       <span style="font-size:16px">${awayFlag}</span>
     </div>
+    ${canPredict && pred?.h !== "" && pred?.a !== "" && pred?.h !== undefined && parseInt(pred.h) === parseInt(pred.a) ? `
+      <div style="display:flex;align-items:center;gap:6px;padding-top:7px;margin-top:7px;border-top:1px dashed rgba(244,197,66,0.3)">
+        <span style="font-size:10px;color:var(--text2);flex-shrink:0">🥅 ${L?"Penalties:":"T.A.B. :"}</span>
+        <button class="pen-btn" data-pen="${match.id}" data-side="home" style="flex:1;padding:5px 8px;border-radius:6px;border:1.5px solid ${pred?.pen==="home"?"var(--gold)":"var(--border2)"};background:${pred?.pen==="home"?"rgba(244,197,66,0.15)":"transparent"};color:${pred?.pen==="home"?"var(--gold)":"var(--text2)"};font-size:11px;font-weight:600;cursor:pointer">${homeName}</button>
+        <button class="pen-btn" data-pen="${match.id}" data-side="away" style="flex:1;padding:5px 8px;border-radius:6px;border:1.5px solid ${pred?.pen==="away"?"var(--gold)":"var(--border2)"};background:${pred?.pen==="away"?"rgba(244,197,66,0.15)":"transparent"};color:${pred?.pen==="away"?"var(--gold)":"var(--text2)"};font-size:11px;font-weight:600;cursor:pointer">${awayName}</button>
+      </div>
+    ` : ""}
     ${isAdmin&&home&&away?`
       <div style="display:flex;align-items:center;gap:6px;padding-top:7px;margin-top:7px;border-top:1px solid var(--border)">
         <span style="font-size:9px;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase;flex:1">${L?"Real":"Réel"}</span>
@@ -1223,6 +1307,13 @@ function renderKoMatch(match, pred, L, isAdmin, koActual) {
           style="width:38px;height:38px;text-align:center;font-size:15px;font-weight:700;font-family:'DM Mono',monospace;background:rgba(255,255,255,0.08);border:1.5px solid var(--border2);border-radius:7px;color:#fff;outline:none" />
         <button class="validate-ko-actual-btn" data-validate-ko-actual="${match.id}" style="width:30px;height:38px;border:none;border-radius:7px;background:rgba(244,197,66,0.15);color:var(--gold);font-size:14px;cursor:pointer;flex-shrink:0">✓</button>
       </div>
+      ${koActual?.h !== "" && koActual?.a !== "" && koActual?.h !== undefined && parseInt(koActual.h) === parseInt(koActual.a) ? `
+        <div style="display:flex;align-items:center;gap:6px;padding-top:7px;margin-top:7px;border-top:1px dashed rgba(244,197,66,0.3)">
+          <span style="font-size:10px;color:var(--gold);flex-shrink:0">🥅 ${L?"Penalties:":"T.A.B. :"}</span>
+          <button class="pen-actual-btn" data-pen-actual="${match.id}" data-side="home" style="flex:1;padding:5px 8px;border-radius:6px;border:1.5px solid ${koActual?.pen==="home"?"var(--green)":"var(--border2)"};background:${koActual?.pen==="home"?"rgba(0,229,160,0.15)":"transparent"};color:${koActual?.pen==="home"?"var(--green)":"var(--text2)"};font-size:11px;font-weight:600;cursor:pointer">${homeName}</button>
+          <button class="pen-actual-btn" data-pen-actual="${match.id}" data-side="away" style="flex:1;padding:5px 8px;border-radius:6px;border:1.5px solid ${koActual?.pen==="away"?"var(--green)":"var(--border2)"};background:${koActual?.pen==="away"?"rgba(0,229,160,0.15)":"transparent"};color:${koActual?.pen==="away"?"var(--green)":"var(--text2)"};font-size:11px;font-weight:600;cursor:pointer">${awayName}</button>
+        </div>
+      ` : ""}
     `:hasActual?`
       <div style="display:flex;align-items:center;gap:6px;padding-top:7px;margin-top:7px;border-top:1px solid var(--border)">
         <span style="font-size:9px;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase;flex:1">⚽</span>
@@ -1250,7 +1341,7 @@ function renderKnockout(L) {
   const koActuals = state.koActuals || {};
 
   const bracket = buildFullBracket(playerGroupPreds, playerKoPreds);
-  const {r32, r16, qf, sf, final} = bracket;
+  const {r32, r16, qf, sf, third, final} = bracket;
 
   // Count how many group matches the player has predicted
   const predCount = MATCHES.filter(m => {
@@ -1275,6 +1366,7 @@ function renderKnockout(L) {
     ${renderRound(r16, playerKoPreds, koActuals, L, state.isAdmin, L?"Round of 16 — 1/8":"1/8 de finale")}
     ${renderRound(qf,  playerKoPreds, koActuals, L, state.isAdmin, L?"Quarter-finals":"1/4 de finale")}
     ${renderRound(sf,  playerKoPreds, koActuals, L, state.isAdmin, L?"Semi-finals":"Demi-finales")}
+    ${renderRound(third, playerKoPreds, koActuals, L, state.isAdmin, L?"🥉 3rd place":"🥉 Match pour la 3e place")}
     ${renderRound(final, playerKoPreds, koActuals, L, state.isAdmin, L?"🏆 Final":"🏆 Finale")}
   `;
 }
@@ -1299,7 +1391,14 @@ async function savePrediction(matchId, h, a) {
 
 async function saveKoPrediction(matchId, h, a) {
   if (!state.player) return;
-  await dbUpdate(dbRef(db, `koPredictions/${state.player}/${matchId}`), {h, a});
+  const cur = (state.koPredictions[state.player]||{})[matchId] || {};
+  await dbUpdate(dbRef(db, `koPredictions/${state.player}/${matchId}`), {h, a, pen: cur.pen ?? null});
+  flashSave();
+}
+
+async function saveKoPredictionWithPen(matchId, h, a, pen) {
+  if (!state.player) return;
+  await dbUpdate(dbRef(db, `koPredictions/${state.player}/${matchId}`), {h, a, pen});
   flashSave();
 }
 
@@ -1856,8 +1955,8 @@ function renderGroupes(L) {
     </div>
   `;
 
-  // Real R32 bracket based on actual scores (provisional)
-  const realR32 = buildR32fromScores(state.actuals, true);
+  // Real full bracket based on actual scores (R32 through Final)
+  const realBracket = buildFullBracket(state.actuals, state.koActuals);
 
   // Track which groups are fully complete
   const completeGroups = new Set(GROUPS_LIST.filter(g => {
@@ -1865,38 +1964,52 @@ function renderGroupes(L) {
       .every(m => { const a=state.actuals[m.id]; return a&&a.h!==""&&a.a!==""; });
   }));
 
+  const renderRealMatch = (m, i) => {
+    const home = m.home ? TEAMS[m.home] : null;
+    const away = m.away ? TEAMS[m.away] : null;
+    const tbd = `<span style="color:var(--text3);font-style:italic">${L?"TBD":"À déterm."}</span>`;
+    const homeGroup = m.home ? GROUPS_LIST.find(g => GROUP_TEAMS[g].includes(m.home)) : null;
+    const awayGroup = m.away ? GROUPS_LIST.find(g => GROUP_TEAMS[g].includes(m.away)) : null;
+    const homeProvisional = homeGroup && !completeGroups.has(homeGroup);
+    const awayProvisional = awayGroup && !completeGroups.has(awayGroup);
+    const actual = state.koActuals[m.id];
+    const hasResult = actual && actual.h !== "" && actual.a !== "";
+
+    return `<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:10px;color:var(--text3);width:20px">${i+1}</span>
+      <span style="font-size:14px">${home?.flag||"❓"}</span>
+      <span style="flex:1;font-size:12px;font-weight:${home?"600":"400"};color:${home?"var(--text)":"var(--text3)"}">
+        ${home?(L?home.en:home.name):tbd}${homeProvisional?" ⏳":""}
+      </span>
+      ${hasResult ? `<span style="font-size:12px;font-weight:800;color:var(--gold);font-family:'DM Mono',monospace">${actual.h}–${actual.a}</span>` : `<span style="font-size:10px;color:var(--text3)">vs</span>`}
+      <span style="flex:1;font-size:12px;font-weight:${away?"600":"400"};color:${away?"var(--text)":"var(--text3)"};text-align:right">
+        ${awayProvisional?"⏳ ":""}${away?(L?away.en:away.name):tbd}
+      </span>
+      <span style="font-size:14px">${away?.flag||"❓"}</span>
+    </div>`;
+  };
+
+  const renderRealRound = (matches, title) => matches.length === 0 ? "" : `
+    <div style="margin-bottom:10px">
+      <div style="font-size:10px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">${title}</div>
+      ${matches.map(renderRealMatch).join("")}
+    </div>
+  `;
+
   const realBracketHtml = `
     <div style="background:var(--bg2);border:1px solid rgba(0,229,160,0.3);border-radius:12px;padding:12px;margin-bottom:10px">
       <div style="font-size:11px;font-weight:800;color:var(--green);letter-spacing:2px;margin-bottom:6px">
-        ⚔️ ${L?"REAL BRACKET — ROUND OF 32":"BRACKET RÉEL — 1/16 DE FINALE"}
+        ⚔️ ${L?"REAL BRACKET":"BRACKET RÉEL"}
       </div>
       <div style="font-size:10px;color:var(--text3);margin-bottom:10px">
         ⏳ = ${L?"provisional (group not finished)":"provisoire (groupe non terminé)"}
       </div>
-      ${realR32.map((m, i) => {
-        const home = m.home ? TEAMS[m.home] : null;
-        const away = m.away ? TEAMS[m.away] : null;
-        const tbd = `<span style="color:var(--text3);font-style:italic">${L?"TBD":"À déterm."}</span>`;
-
-        // Check if teams come from complete groups
-        const homeGroup = m.home ? GROUPS_LIST.find(g => GROUP_TEAMS[g].includes(m.home)) : null;
-        const awayGroup = m.away ? GROUPS_LIST.find(g => GROUP_TEAMS[g].includes(m.away)) : null;
-        const homeProvisional = homeGroup && !completeGroups.has(homeGroup);
-        const awayProvisional = awayGroup && !completeGroups.has(awayGroup);
-
-        return `<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--border)">
-          <span style="font-size:10px;color:var(--text3);width:20px">${i+1}</span>
-          <span style="font-size:14px">${home?.flag||"❓"}</span>
-          <span style="flex:1;font-size:12px;font-weight:${home?"600":"400"};color:${home?"var(--text)":"var(--text3)"}">
-            ${home?(L?home.en:home.name):tbd}${homeProvisional?" ⏳":""}
-          </span>
-          <span style="font-size:10px;color:var(--text3)">vs</span>
-          <span style="flex:1;font-size:12px;font-weight:${away?"600":"400"};color:${away?"var(--text)":"var(--text3)"};text-align:right">
-            ${awayProvisional?"⏳ ":""}${away?(L?away.en:away.name):tbd}
-          </span>
-          <span style="font-size:14px">${away?.flag||"❓"}</span>
-        </div>`;
-      }).join("")}
+      ${renderRealRound(realBracket.r32, L?"Round of 32":"1/16 de finale")}
+      ${renderRealRound(realBracket.r16, L?"Round of 16":"1/8 de finale")}
+      ${renderRealRound(realBracket.qf, L?"Quarter-finals":"1/4 de finale")}
+      ${renderRealRound(realBracket.sf, L?"Semi-finals":"Demi-finales")}
+      ${renderRealRound(realBracket.third, L?"🥉 3rd place":"🥉 3e place")}
+      ${renderRealRound(realBracket.final, L?"🏆 Final":"🏆 Finale")}
     </div>
   `;
 
@@ -1962,6 +2075,31 @@ function bindEvents(groups, filteredMatches, playerList, L) {
       const actual = state.actuals[matchId] || {h:"",a:""};
       saveActual(matchId, actual.h, actual.a);
       flashBtn(btn);
+    });
+  });
+
+  // Penalty winner selector — predictions
+  document.querySelectorAll(".pen-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const matchId = btn.dataset.pen;
+      const side = btn.dataset.side;
+      if (!state.koPredictions[state.player]) state.koPredictions[state.player] = {};
+      if (!state.koPredictions[state.player][matchId]) state.koPredictions[state.player][matchId] = {h:"",a:""};
+      state.koPredictions[state.player][matchId].pen = side;
+      const pred = state.koPredictions[state.player][matchId];
+      saveKoPredictionWithPen(matchId, pred.h, pred.a, side);
+    });
+  });
+
+  // Penalty winner selector — admin real scores
+  document.querySelectorAll(".pen-actual-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const matchId = btn.dataset.penActual;
+      const side = btn.dataset.side;
+      if (!state.koActuals[matchId]) state.koActuals[matchId] = {h:"",a:""};
+      state.koActuals[matchId].pen = side;
+      const actual = state.koActuals[matchId];
+      saveKoActualWithPenAndReset(matchId, actual.h, actual.a, side);
     });
   });
 
