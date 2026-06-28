@@ -1288,6 +1288,17 @@ function renderKnockout(L) {
         ? "Predict the real knockout matches. Winners advance automatically as you go!"
         : "Pronostique les vrais matchs à élimination. Les vainqueurs avancent automatiquement au fil de tes pronostics !"}
       <div style="margin-top:4px;font-size:11px;color:var(--text3)">${predCount} / 16 ${L?"Round of 32 matches predicted":"matchs des 1/16 pronostiqués"}</div>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;color:var(--text3);line-height:1.6">
+        ${L ? `
+          ⚽ <strong style="color:var(--text2)">Score</strong> = final score incl. extra time (e.g. 2-1 after extra time → enter 2-1)<br>
+          🥅 <strong style="color:var(--text2)">Draw after extra time?</strong> A penalty shootout selector will appear — pick the winner<br>
+          🏆 <strong style="color:var(--text2)">Scoring</strong> = same as group stage: exact score 3 pts, correct winner 1 pt
+        ` : `
+          ⚽ <strong style="color:var(--text2)">Score</strong> = score final, prolongations incluses (ex : 2-1 après prolongations → entre 2-1)<br>
+          🥅 <strong style="color:var(--text2)">Match nul après prolongations ?</strong> Un sélecteur de tirs au but apparaît — choisis le vainqueur<br>
+          🏆 <strong style="color:var(--text2)">Points</strong> = comme en phase de groupes : score exact 3 pts, bon vainqueur 1 pt
+        `}
+      </div>
     </div>
 
     ${renderRound(r32, playerKoPreds, koActuals, L, state.isAdmin, L?"Round of 32 — 1/16":"1/16 de finale")}
