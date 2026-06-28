@@ -1304,9 +1304,9 @@ function renderKoMatch(match, pred, L, isAdmin, koActual, playerList, allKoPreds
         <button class="pen-btn" data-pen="${match.id}" data-side="away" style="flex:1;padding:5px 8px;border-radius:6px;border:1.5px solid ${pred?.pen==="away"?"var(--gold)":"var(--border2)"};background:${pred?.pen==="away"?"rgba(244,197,66,0.15)":"transparent"};color:${pred?.pen==="away"?"var(--gold)":"var(--text2)"};font-size:11px;font-weight:600;cursor:pointer">${awayName}</button>
       </div>
     ` : ""}
-    ${isAdmin&&home&&away?`
+    ${koStarted&&home&&away?`
       <div style="display:flex;align-items:center;gap:6px;padding-top:7px;margin-top:7px;border-top:1px solid var(--border)">
-        <span style="font-size:9px;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase;flex:1">${L?"Real":"Réel"}</span>
+        <span style="font-size:9px;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase;flex:1">⚽ ${L?"Real":"Réel"}</span>
         <input type="number" min="0" max="20" value="${koActual?.h||""}" data-ko-actual="${match.id}" data-side="h"
           style="width:38px;height:38px;text-align:center;font-size:15px;font-weight:700;font-family:'DM Mono',monospace;background:rgba(255,255,255,0.08);border:1.5px solid var(--border2);border-radius:7px;color:#fff;outline:none" />
         <span style="color:var(--text3)">—</span>
