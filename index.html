@@ -523,30 +523,33 @@ function getBestThirds(scores) {
     .slice(0,8);
 }
 
-// Détermine le vainqueur d'un match KO (score + tirs au but si égalité)
+// Détermine le vainqueur d'un match KO.
+// Priorité : score réel (koActuals) > pronostic du joueur (koScores)
 function getKoWinnerFixed(matchId, koScores) {
-  const pred = koScores[matchId];
-  if (!pred || pred.h === "" || pred.a === "") return null;
-  const h = parseInt(pred.h), a = parseInt(pred.a);
+  // Try real score first
+  const actual = state.koActuals[matchId];
+  const src = (actual && actual.h !== "" && actual.a !== "") ? actual : koScores[matchId];
+  if (!src || src.h === "" || src.a === "") return null;
+  const h = parseInt(src.h), a = parseInt(src.a);
   if (isNaN(h) || isNaN(a)) return null;
-  // Find the match definition to know home/away teams
   const allKo = [...KO_MATCHES.r32, ...KO_MATCHES.r16, ...KO_MATCHES.qf, ...KO_MATCHES.sf, ...KO_MATCHES.third, ...KO_MATCHES.final];
   const match = allKo.find(m => m.id === matchId);
   if (!match) return null;
   const homeTeam = resolveKoTeam(match, "home", koScores);
   const awayTeam = resolveKoTeam(match, "away", koScores);
   if (h === a) {
-    if (pred.pen === "home") return homeTeam;
-    if (pred.pen === "away") return awayTeam;
+    if (src.pen === "home") return homeTeam;
+    if (src.pen === "away") return awayTeam;
     return null;
   }
   return h > a ? homeTeam : awayTeam;
 }
 
 function getKoLoserFixed(matchId, koScores) {
-  const pred = koScores[matchId];
-  if (!pred || pred.h === "" || pred.a === "") return null;
-  const h = parseInt(pred.h), a = parseInt(pred.a);
+  const actual = state.koActuals[matchId];
+  const src = (actual && actual.h !== "" && actual.a !== "") ? actual : koScores[matchId];
+  if (!src || src.h === "" || src.a === "") return null;
+  const h = parseInt(src.h), a = parseInt(src.a);
   if (isNaN(h) || isNaN(a)) return null;
   const allKo = [...KO_MATCHES.r32, ...KO_MATCHES.r16, ...KO_MATCHES.qf, ...KO_MATCHES.sf, ...KO_MATCHES.third, ...KO_MATCHES.final];
   const match = allKo.find(m => m.id === matchId);
@@ -554,27 +557,21 @@ function getKoLoserFixed(matchId, koScores) {
   const homeTeam = resolveKoTeam(match, "home", koScores);
   const awayTeam = resolveKoTeam(match, "away", koScores);
   if (h === a) {
-    if (pred.pen === "home") return awayTeam;
-    if (pred.pen === "away") return homeTeam;
+    if (src.pen === "home") return awayTeam;
+    if (src.pen === "away") return homeTeam;
     return null;
   }
   return h > a ? awayTeam : homeTeam;
 }
 
-// Résout l'équipe home/away d'un match KO — soit fixe (R32 avec groupStandings), soit dérivée (from: [...])
+// Résout l'équipe home/away d'un match KO
 function resolveKoTeam(match, side, koScores) {
   if (match.home && match.away) {
-    // R32 fixed match
     return match[side];
   }
   if (match.from) {
-    // R16/QF/SF/Final/Third: derived from previous round winners (or loser for 3rd place match)
-    const [matchA, matchB] = match.from;
-    const idx = side === "home" ? 0 : 1;
-    const sourceId = match.from[idx];
-    if (match.loser) {
-      return getKoLoserFixed(sourceId, koScores);
-    }
+    const sourceId = match.from[side === "home" ? 0 : 1];
+    if (match.loser) return getKoLoserFixed(sourceId, koScores);
     return getKoWinnerFixed(sourceId, koScores);
   }
   return null;
